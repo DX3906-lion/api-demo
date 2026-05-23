@@ -1,0 +1,216 @@
+-- V1__init_schema.sql
+-- MySQL 8.0 / InnoDB / utf8mb4
+
+CREATE TABLE IF NOT EXISTS script (
+  id varchar(64) NOT NULL,
+  name varchar(255) NOT NULL,
+  description text,
+  status varchar(32) NOT NULL,
+  current_version_id varchar(64) DEFAULT NULL,
+  created_time datetime NOT NULL,
+  updated_time datetime NOT NULL,
+  created_by varchar(64) DEFAULT NULL,
+  updated_by varchar(64) DEFAULT NULL,
+  deleted tinyint NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  KEY idx_script_status (status),
+  KEY idx_script_current_version_id (current_version_id),
+  KEY idx_script_created_time (created_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE IF NOT EXISTS script_version (
+  id varchar(64) NOT NULL,
+  script_id varchar(64) NOT NULL,
+  version_no int NOT NULL,
+  version_status varchar(32) NOT NULL,
+  description text,
+  published_at datetime DEFAULT NULL,
+  created_time datetime NOT NULL,
+  updated_time datetime NOT NULL,
+  created_by varchar(64) DEFAULT NULL,
+  updated_by varchar(64) DEFAULT NULL,
+  deleted tinyint NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_script_version_no (script_id, version_no),
+  KEY idx_script_version_script_id (script_id),
+  KEY idx_script_version_status (version_status),
+  KEY idx_script_version_published_at (published_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE IF NOT EXISTS step_definition (
+  id varchar(64) NOT NULL,
+  script_id varchar(64) NOT NULL,
+  script_version_id varchar(64) NOT NULL,
+  parent_step_id varchar(64) DEFAULT NULL,
+  step_type varchar(32) NOT NULL,
+  name varchar(255) NOT NULL,
+  sort_no int NOT NULL,
+  request_method varchar(16) DEFAULT NULL,
+  request_url text,
+  request_config longtext,
+  assertion_config longtext,
+  extractor_config longtext,
+  enabled tinyint NOT NULL DEFAULT 1,
+  created_time datetime NOT NULL,
+  updated_time datetime NOT NULL,
+  created_by varchar(64) DEFAULT NULL,
+  updated_by varchar(64) DEFAULT NULL,
+  deleted tinyint NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  KEY idx_step_def_script_version_id (script_version_id),
+  KEY idx_step_def_script_id (script_id),
+  KEY idx_step_def_parent_step_id (parent_step_id),
+  KEY idx_step_def_sort_no (sort_no),
+  KEY idx_step_def_step_type (step_type)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE IF NOT EXISTS field_config (
+  id varchar(64) NOT NULL,
+  script_id varchar(64) NOT NULL,
+  script_version_id varchar(64) NOT NULL,
+  step_id varchar(64) NOT NULL,
+  field_scope varchar(32) NOT NULL,
+  field_path varchar(1000) DEFAULT NULL,
+  field_key varchar(255) DEFAULT NULL,
+  stable_field_key varchar(500) DEFAULT NULL,
+  field_name varchar(255) DEFAULT NULL,
+  data_type varchar(64) DEFAULT NULL,
+  required tinyint NOT NULL DEFAULT 0,
+  array_flag tinyint NOT NULL DEFAULT 0,
+  sensitive tinyint NOT NULL DEFAULT 0,
+  description text,
+  created_time datetime NOT NULL,
+  updated_time datetime NOT NULL,
+  created_by varchar(64) DEFAULT NULL,
+  updated_by varchar(64) DEFAULT NULL,
+  deleted tinyint NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  KEY idx_field_cfg_script_version_id (script_version_id),
+  KEY idx_field_cfg_step_id (step_id),
+  KEY idx_field_cfg_scope (field_scope),
+  KEY idx_field_cfg_stable_key (stable_field_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE IF NOT EXISTS script_field_default (
+  id varchar(64) NOT NULL,
+  script_id varchar(64) NOT NULL,
+  script_version_id varchar(64) NOT NULL,
+  field_config_id varchar(64) NOT NULL,
+  default_value longtext,
+  value_source varchar(64) DEFAULT NULL,
+  created_time datetime NOT NULL,
+  updated_time datetime NOT NULL,
+  created_by varchar(64) DEFAULT NULL,
+  updated_by varchar(64) DEFAULT NULL,
+  deleted tinyint NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_script_field_default (script_version_id, field_config_id),
+  KEY idx_script_default_script_id (script_id),
+  KEY idx_script_default_field_config_id (field_config_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE IF NOT EXISTS case_data_set (
+  id varchar(64) NOT NULL,
+  script_id varchar(64) NOT NULL,
+  script_version_id varchar(64) NOT NULL,
+  name varchar(255) NOT NULL,
+  description text,
+  status varchar(32) NOT NULL,
+  created_time datetime NOT NULL,
+  updated_time datetime NOT NULL,
+  created_by varchar(64) DEFAULT NULL,
+  updated_by varchar(64) DEFAULT NULL,
+  deleted tinyint NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  KEY idx_case_data_set_script_id (script_id),
+  KEY idx_case_data_set_script_version_id (script_version_id),
+  KEY idx_case_data_set_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE IF NOT EXISTS case_field_value (
+  id varchar(64) NOT NULL,
+  case_data_set_id varchar(64) NOT NULL,
+  field_config_id varchar(64) NOT NULL,
+  value longtext,
+  value_source varchar(64) DEFAULT NULL,
+  created_time datetime NOT NULL,
+  updated_time datetime NOT NULL,
+  created_by varchar(64) DEFAULT NULL,
+  updated_by varchar(64) DEFAULT NULL,
+  deleted tinyint NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_case_field_value (case_data_set_id, field_config_id),
+  KEY idx_case_field_value_field_config_id (field_config_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE IF NOT EXISTS execution_plan (
+  id varchar(64) NOT NULL,
+  name varchar(255) NOT NULL,
+  description text,
+  plan_config longtext,
+  status varchar(32) NOT NULL,
+  created_time datetime NOT NULL,
+  updated_time datetime NOT NULL,
+  created_by varchar(64) DEFAULT NULL,
+  updated_by varchar(64) DEFAULT NULL,
+  deleted tinyint NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  KEY idx_execution_plan_status (status),
+  KEY idx_execution_plan_created_time (created_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE IF NOT EXISTS execution_task (
+  id varchar(64) NOT NULL,
+  execution_plan_id varchar(64) DEFAULT NULL,
+  script_id varchar(64) NOT NULL,
+  script_version_id varchar(64) NOT NULL,
+  case_data_set_id varchar(64) DEFAULT NULL,
+  status varchar(32) NOT NULL,
+  trigger_type varchar(32) NOT NULL,
+  started_at datetime DEFAULT NULL,
+  finished_at datetime DEFAULT NULL,
+  duration_ms bigint DEFAULT NULL,
+  error_message longtext,
+  created_time datetime NOT NULL,
+  updated_time datetime NOT NULL,
+  created_by varchar(64) DEFAULT NULL,
+  updated_by varchar(64) DEFAULT NULL,
+  deleted tinyint NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  KEY idx_execution_task_plan_id (execution_plan_id),
+  KEY idx_execution_task_script_version_id (script_version_id),
+  KEY idx_execution_task_case_data_set_id (case_data_set_id),
+  KEY idx_execution_task_status (status),
+  KEY idx_execution_task_started_at (started_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE IF NOT EXISTS step_execution_snapshot (
+  id varchar(64) NOT NULL,
+  execution_task_id varchar(64) NOT NULL,
+  step_id varchar(64) NOT NULL,
+  script_id varchar(64) NOT NULL,
+  script_version_id varchar(64) NOT NULL,
+  case_data_set_id varchar(64) DEFAULT NULL,
+  step_name varchar(255) DEFAULT NULL,
+  step_type varchar(32) DEFAULT NULL,
+  status varchar(32) NOT NULL,
+  request_snapshot longtext,
+  response_snapshot longtext,
+  assertion_result longtext,
+  extractor_result longtext,
+  started_at datetime DEFAULT NULL,
+  finished_at datetime DEFAULT NULL,
+  duration_ms bigint DEFAULT NULL,
+  error_message longtext,
+  created_time datetime NOT NULL,
+  updated_time datetime NOT NULL,
+  created_by varchar(64) DEFAULT NULL,
+  updated_by varchar(64) DEFAULT NULL,
+  deleted tinyint NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  KEY idx_step_snapshot_task_id (execution_task_id),
+  KEY idx_step_snapshot_step_id (step_id),
+  KEY idx_step_snapshot_script_version_id (script_version_id),
+  KEY idx_step_snapshot_status (status),
+  KEY idx_step_snapshot_started_at (started_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

@@ -160,7 +160,9 @@ new-executor-service 解析响应
   ↓
 new-executor-service 执行提取和断言
   ↓
-new-executor-service 保存执行快照
+new-executor-service 返回标准执行结果
+  ↓
+new-script-service 接收结果并落库执行快照
   ↓
 new-script-service 展示调试结果
 ```
@@ -257,7 +259,9 @@ TestCase 绑定 scriptVersionId
   ↓
 下发 new-executor-service
   ↓
-执行机执行任务
+执行机执行任务并返回标准执行结果
+  ↓
+脚本服务接收结果并落库执行明细
   ↓
 脚本服务汇总计划结果
 ```

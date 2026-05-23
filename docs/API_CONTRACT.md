@@ -18,7 +18,7 @@
 ```json
 {
   "success": true,
-  "code": "0",
+  "code": "000000",
   "message": "success",
   "data": {}
 }
@@ -188,10 +188,10 @@ GET  /api/debug/executions/{executionId}
 
 说明：
 
-- 脚本服务生成调试快照。
-- 脚本服务调用执行机服务。
-- 执行机返回 `executionId`。
-- 脚本服务根据 `executionId` 展示结果。
+- 脚本服务负责调试发起、执行结果展示与执行快照查询。
+- 脚本服务调用执行机服务并接收标准执行结果。
+- 执行机返回 `executionId` 与标准执行结果。
+- 脚本服务接收执行结果后落库 `StepExecutionSnapshot`，并根据 `executionId` 展示结果。
 
 ## 3. 执行机服务接口
 
@@ -238,3 +238,10 @@ GET /executor/records/{executionId}/steps/{stepSnapshotId}
 - Controller 只负责协议层，不写核心业务。
 - 执行期 API 不得修改脚本配置表。
 - 调试 API 也必须经过执行机服务。
+
+
+## 6. 职责边界补充
+
+- `new-script-service` 负责脚本配置、编排、调试发起、执行结果展示、快照查询与落库。
+- `new-executor-service` 负责接收执行任务、组装真实请求、执行 HTTP 请求、解析响应、生成标准执行结果。
+- 执行机服务不直接依赖脚本服务业务表。
