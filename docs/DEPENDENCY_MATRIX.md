@@ -72,3 +72,12 @@
 
 - 当前阶段不引入 Flyway / Liquibase 依赖。
 - 数据库初始化与演示数据采用人工 SQL 脚本管理。
+
+
+## 10. T04 数据访问依赖落地
+
+- `new-script-service` 引入 `org.mybatis.spring.boot:mybatis-spring-boot-starter`，用于 `Script`、`ScriptVersion`、`StepDefinition` 的 Mapper/XML 数据访问。
+- `new-script-service` 引入 `com.mysql:mysql-connector-j`（runtime），用于连接 MySQL 8.0。
+- `new-script-service` 引入 `spring-boot-starter-validation`，用于 Controller 请求参数校验。
+- `new-script-service` 测试范围引入 `com.h2database:h2`，仅用于 T04 CRUD 集成测试，不作为生产数据库方案。
+- 本轮未引入 MyBatis-Plus、JPA/Hibernate、Flyway、Liquibase、Lombok、Guava、Apache Commons、MapStruct。

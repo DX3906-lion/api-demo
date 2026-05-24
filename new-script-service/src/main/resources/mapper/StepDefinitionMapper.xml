@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.apidemo.script.mapper.StepDefinitionMapper">
+
+    <resultMap id="StepDefinitionResultMap" type="com.apidemo.script.entity.StepDefinitionEntity">
+        <id column="id" property="id"/>
+        <result column="script_id" property="scriptId"/>
+        <result column="script_version_id" property="scriptVersionId"/>
+        <result column="parent_step_id" property="parentStepId"/>
+        <result column="step_type" property="stepType"/>
+        <result column="name" property="name"/>
+        <result column="sort_no" property="sortNo"/>
+        <result column="request_method" property="requestMethod"/>
+        <result column="request_url" property="requestUrl"/>
+        <result column="request_config" property="requestConfig"/>
+        <result column="assertion_config" property="assertionConfig"/>
+        <result column="extractor_config" property="extractorConfig"/>
+        <result column="enabled" property="enabled"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="updated_time" property="updatedTime"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="updated_by" property="updatedBy"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.apidemo.script.entity.StepDefinitionEntity">
+        INSERT INTO step_definition (
+            id, script_id, script_version_id, parent_step_id, step_type, name, sort_no,
+            request_method, request_url, request_config, assertion_config, extractor_config,
+            enabled, created_time, updated_time, created_by, updated_by, deleted
+        )
+        VALUES (
+            #{id}, #{scriptId}, #{scriptVersionId}, #{parentStepId}, #{stepType}, #{name}, #{sortNo},
+            #{requestMethod}, #{requestUrl}, #{requestConfig}, #{assertionConfig}, #{extractorConfig},
+            #{enabled}, #{createdTime}, #{updatedTime}, #{createdBy}, #{updatedBy}, #{deleted}
+        )
+    </insert>
+
+    <select id="selectByScriptVersionAndId" resultMap="StepDefinitionResultMap">
+        SELECT id, script_id, script_version_id, parent_step_id, step_type, name, sort_no,
+               request_method, request_url, request_config, assertion_config, extractor_config,
+               enabled, created_time, updated_time, created_by, updated_by, deleted
+        FROM step_definition
+        WHERE script_id = #{scriptId}
+          AND script_version_id = #{versionId}
+          AND id = #{id}
+          AND deleted = 0
+    </select>
+
+    <select id="listByVersion" resultMap="StepDefinitionResultMap">
+        SELECT id, script_id, script_version_id, parent_step_id, step_type, name, sort_no,
+               request_method, request_url, request_config, assertion_config, extractor_config,
+               enabled, created_time, updated_time, created_by, updated_by, deleted
+        FROM step_definition
+        WHERE script_id = #{scriptId}
+          AND script_version_id = #{versionId}
+          AND deleted = 0
+        ORDER BY sort_no ASC, created_time ASC
+    </select>
+
+    <update id="update" parameterType="com.apidemo.script.entity.StepDefinitionEntity">
+        UPDATE step_definition
+        SET parent_step_id = #{parentStepId},
+            step_type = #{stepType},
+            name = #{name},
+            sort_no = #{sortNo},
+            request_method = #{requestMethod},
+            request_url = #{requestUrl},
+            request_config = #{requestConfig},
+            assertion_config = #{assertionConfig},
+            extractor_config = #{extractorConfig},
+            enabled = #{enabled},
+            updated_time = #{updatedTime},
+            updated_by = #{updatedBy}
+        WHERE id = #{id}
+          AND script_id = #{scriptId}
+          AND script_version_id = #{scriptVersionId}
+          AND deleted = 0
+    </update>
+
+    <update id="logicalDelete">
+        UPDATE step_definition
+        SET deleted = 1,
+            updated_time = #{updatedTime},
+            updated_by = #{updatedBy}
+        WHERE id = #{id}
+          AND script_id = #{scriptId}
+          AND script_version_id = #{versionId}
+          AND deleted = 0
+    </update>
+</mapper>

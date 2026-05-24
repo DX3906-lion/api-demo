@@ -74,6 +74,29 @@ POST   /api/steps/{stepId}/copy
 PUT    /api/script-versions/{versionId}/steps/reorder
 ```
 
+### 2.4.1 T04 已实现接口子集
+
+T04 阶段仅实现 `Script`、`ScriptVersion`、`StepDefinition` 的基础模型与 CRUD，接口采用带 `scriptId` 的嵌套路由以校验版本归属关系。
+
+```http
+POST   /api/scripts
+GET    /api/scripts/{scriptId}
+POST   /api/scripts/{scriptId}/versions
+GET    /api/scripts/{scriptId}/versions/{versionId}
+POST   /api/scripts/{scriptId}/versions/{versionId}/publish
+GET    /api/scripts/{scriptId}/versions/{versionId}/steps
+POST   /api/scripts/{scriptId}/versions/{versionId}/steps
+PUT    /api/scripts/{scriptId}/versions/{versionId}/steps/{stepId}
+DELETE /api/scripts/{scriptId}/versions/{versionId}/steps/{stepId}
+```
+
+实现说明：
+
+- `POST /api/scripts` 创建脚本时同步创建 `DRAFT` 版本，并写入 `script.current_version_id`。
+- `POST /api/scripts/{scriptId}/versions` 在同一脚本存在 `DRAFT` 版本时返回 `BUSINESS_CONFLICT`。
+- `POST /api/scripts/{scriptId}/versions/{versionId}/publish` 仅允许发布 `DRAFT` 版本，发布后版本只读。
+- 步骤新增、更新、删除仅允许操作 `DRAFT` 版本，`PUBLISHED` 版本返回 `VERSION_STATUS_INVALID`。
+
 ### 2.5 请求配置
 
 ```http

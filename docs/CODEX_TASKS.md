@@ -64,6 +64,11 @@
   - 可新建脚本并生成 DRAFT 版本。
   - 可新增与编辑步骤。
   - PUBLISHED 版本只读校验生效。
+- T04 验收说明：
+  - 已实现 `Script`、`ScriptVersion`、`StepDefinition` 基础 CRUD 闭环。
+  - 创建脚本同步创建默认 `DRAFT` 版本。
+  - 发布版本后步骤新增、更新、删除会返回 `VERSION_STATUS_INVALID`。
+  - 测试覆盖 Service 事务规则与 Controller 主流程。
 - 测试命令：
   - `mvn -pl new-script-service test`
 
