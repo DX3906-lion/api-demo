@@ -118,6 +118,34 @@ PUT /api/fields/{fieldId}/default-value
 PUT /api/fields/{fieldId}/remark
 ```
 
+### 2.6.1 T05 已实现接口子集
+
+T05 阶段仅实现字段配置、脚本字段默认值、用例数据集、用例字段覆盖值的最小维护能力，接口继续采用带 `scriptId` 与 `versionId` 的嵌套路由校验归属关系。
+
+```http
+GET    /api/scripts/{scriptId}/versions/{versionId}/fields
+POST   /api/scripts/{scriptId}/versions/{versionId}/fields
+PUT    /api/scripts/{scriptId}/versions/{versionId}/fields/{fieldId}
+DELETE /api/scripts/{scriptId}/versions/{versionId}/fields/{fieldId}
+PUT    /api/scripts/{scriptId}/versions/{versionId}/fields/{fieldId}/default
+GET    /api/scripts/{scriptId}/versions/{versionId}/fields/defaults
+
+POST   /api/scripts/{scriptId}/versions/{versionId}/case-data-sets
+GET    /api/scripts/{scriptId}/versions/{versionId}/case-data-sets
+GET    /api/scripts/{scriptId}/versions/{versionId}/case-data-sets/{caseDataSetId}
+PUT    /api/scripts/{scriptId}/versions/{versionId}/case-data-sets/{caseDataSetId}
+DELETE /api/scripts/{scriptId}/versions/{versionId}/case-data-sets/{caseDataSetId}
+PUT    /api/scripts/{scriptId}/versions/{versionId}/case-data-sets/{caseDataSetId}/values
+GET    /api/scripts/{scriptId}/versions/{versionId}/case-data-sets/{caseDataSetId}/values
+```
+
+实现说明：
+
+- `field_config` 与 `script_field_default` 只允许在 `DRAFT` 版本下新增、修改、删除。
+- 删除 `field_config` 时同步逻辑删除对应 `script_field_default`，不删除 `case_field_value`。
+- `case_data_set` 与 `case_field_value` 可在 `DRAFT` 或 `PUBLISHED` 版本下维护。
+- 保存 `case_field_value` 时会校验 `field_config_id` 必须属于当前 `scriptId + versionId`。
+
 ### 2.7 响应样例
 
 ```http

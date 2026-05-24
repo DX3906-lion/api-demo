@@ -17,8 +17,20 @@ public final class ScriptConstants {
     /** Enabled flag value. */
     public static final Integer ENABLED = 1;
 
+    /** Disabled flag value. */
+    public static final Integer DISABLED = 0;
+
     /** Active logical delete flag. */
     public static final Integer NOT_DELETED = 0;
+
+    /** Deleted logical delete flag. */
+    public static final Integer DELETED = 1;
+
+    /** Enabled business status used by case data sets. */
+    public static final String STATUS_ENABLED = "ENABLED";
+
+    /** Manual value source used by field defaults and case field overrides. */
+    public static final String VALUE_SOURCE_MANUAL = "MANUAL";
 
     private ScriptConstants() {
     }

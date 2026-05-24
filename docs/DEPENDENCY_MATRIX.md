@@ -81,3 +81,10 @@
 - `new-script-service` 引入 `spring-boot-starter-validation`，用于 Controller 请求参数校验。
 - `new-script-service` 测试范围引入 `com.h2database:h2`，仅用于 T04 CRUD 集成测试，不作为生产数据库方案。
 - 本轮未引入 MyBatis-Plus、JPA/Hibernate、Flyway、Liquibase、Lombok、Guava、Apache Commons、MapStruct。
+
+
+## 11. T05 依赖变更说明
+
+- T05 沿用 T04 已落地的 MyBatis + Mapper XML、MySQL 驱动、Validation 与 H2 测试依赖。
+- 本轮没有新增 Maven 依赖。
+- 本轮未引入 MyBatis-Plus、JPA/Hibernate、Flyway、Liquibase、Lombok、Guava、Apache Commons、MapStruct。

@@ -83,6 +83,12 @@
 - 验收标准：
   - 字段结构与默认值可维护。
   - 用例覆盖值可维护。
+- T05 验收说明：
+  - 已实现 `FieldConfig`、`ScriptFieldDefault`、`CaseDataSet`、`CaseFieldValue` 最小维护接口。
+  - `field_config` 与 `script_field_default` 仅允许在 `DRAFT` 版本下维护。
+  - `case_data_set` 与 `case_field_value` 允许在 `DRAFT` 或 `PUBLISHED` 版本下维护。
+  - `case_field_value` 保存时校验字段配置必须属于同一 `script_version_id`。
+  - 测试覆盖 Service 版本状态规则、upsert 规则、跨版本字段引用拦截与 Controller 主流程。
 - 测试命令：
   - `mvn -pl new-script-service test`
 

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.apidemo.script.mapper.CaseDataSetMapper">
+
+    <resultMap id="CaseDataSetResultMap" type="com.apidemo.script.entity.CaseDataSetEntity">
+        <id column="id" property="id"/>
+        <result column="script_id" property="scriptId"/>
+        <result column="script_version_id" property="scriptVersionId"/>
+        <result column="name" property="name"/>
+        <result column="description" property="description"/>
+        <result column="status" property="status"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="updated_time" property="updatedTime"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="updated_by" property="updatedBy"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+    <sql id="CaseDataSetColumns">
+        id, script_id, script_version_id, name, description, status,
+        created_time, updated_time, created_by, updated_by, deleted
+    </sql>
+
+    <insert id="insert" parameterType="com.apidemo.script.entity.CaseDataSetEntity">
+        INSERT INTO case_data_set (
+            id, script_id, script_version_id, name, description, status,
+            created_time, updated_time, created_by, updated_by, deleted
+        )
+        VALUES (
+            #{id}, #{scriptId}, #{scriptVersionId}, #{name}, #{description}, #{status},
+            #{createdTime}, #{updatedTime}, #{createdBy}, #{updatedBy}, #{deleted}
+        )
+    </insert>
+
+    <select id="selectByScriptVersionAndId" resultMap="CaseDataSetResultMap">
+        SELECT <include refid="CaseDataSetColumns"/>
+        FROM case_data_set
+        WHERE script_id = #{scriptId}
+          AND script_version_id = #{versionId}
+          AND id = #{id}
+          AND deleted = 0
+    </select>
+
+    <select id="listByVersion" resultMap="CaseDataSetResultMap">
+        SELECT <include refid="CaseDataSetColumns"/>
+        FROM case_data_set
+        WHERE script_id = #{scriptId}
+          AND script_version_id = #{versionId}
+          AND deleted = 0
+        ORDER BY created_time DESC, name ASC
+    </select>
+
+    <update id="update" parameterType="com.apidemo.script.entity.CaseDataSetEntity">
+        UPDATE case_data_set
+        SET name = #{name},
+            description = #{description},
+            status = #{status},
+            updated_time = #{updatedTime},
+            updated_by = #{updatedBy}
+        WHERE id = #{id}
+          AND script_id = #{scriptId}
+          AND script_version_id = #{scriptVersionId}
+          AND deleted = 0
+    </update>
+
+    <update id="logicalDelete">
+        UPDATE case_data_set
+        SET deleted = 1,
+            updated_time = #{updatedTime},
+            updated_by = #{updatedBy}
+        WHERE id = #{id}
+          AND script_id = #{scriptId}
+          AND script_version_id = #{versionId}
+          AND deleted = 0
+    </update>
+</mapper>

@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.apidemo.script.mapper.FieldConfigMapper">
+
+    <resultMap id="FieldConfigResultMap" type="com.apidemo.script.entity.FieldConfigEntity">
+        <id column="id" property="id"/>
+        <result column="script_id" property="scriptId"/>
+        <result column="script_version_id" property="scriptVersionId"/>
+        <result column="step_id" property="stepId"/>
+        <result column="field_scope" property="fieldScope"/>
+        <result column="field_path" property="fieldPath"/>
+        <result column="field_key" property="fieldKey"/>
+        <result column="stable_field_key" property="stableFieldKey"/>
+        <result column="field_name" property="fieldName"/>
+        <result column="data_type" property="dataType"/>
+        <result column="required" property="required"/>
+        <result column="array_flag" property="arrayFlag"/>
+        <result column="sensitive" property="sensitive"/>
+        <result column="description" property="description"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="updated_time" property="updatedTime"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="updated_by" property="updatedBy"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+    <sql id="FieldConfigColumns">
+        id, script_id, script_version_id, step_id, field_scope, field_path, field_key,
+        stable_field_key, field_name, data_type, required, array_flag, sensitive, description,
+        created_time, updated_time, created_by, updated_by, deleted
+    </sql>
+
+    <insert id="insert" parameterType="com.apidemo.script.entity.FieldConfigEntity">
+        INSERT INTO field_config (
+            id, script_id, script_version_id, step_id, field_scope, field_path, field_key,
+            stable_field_key, field_name, data_type, required, array_flag, sensitive, description,
+            created_time, updated_time, created_by, updated_by, deleted
+        )
+        VALUES (
+            #{id}, #{scriptId}, #{scriptVersionId}, #{stepId}, #{fieldScope}, #{fieldPath}, #{fieldKey},
+            #{stableFieldKey}, #{fieldName}, #{dataType}, #{required}, #{arrayFlag}, #{sensitive}, #{description},
+            #{createdTime}, #{updatedTime}, #{createdBy}, #{updatedBy}, #{deleted}
+        )
+    </insert>
+
+    <select id="selectByScriptVersionAndId" resultMap="FieldConfigResultMap">
+        SELECT <include refid="FieldConfigColumns"/>
+        FROM field_config
+        WHERE script_id = #{scriptId}
+          AND script_version_id = #{versionId}
+          AND id = #{id}
+          AND deleted = 0
+    </select>
+
+    <select id="listByVersion" resultMap="FieldConfigResultMap">
+        SELECT <include refid="FieldConfigColumns"/>
+        FROM field_config
+        WHERE script_id = #{scriptId}
+          AND script_version_id = #{versionId}
+          AND deleted = 0
+        <if test="stepId != null and stepId != ''">
+          AND step_id = #{stepId}
+        </if>
+        <if test="fieldScope != null and fieldScope != ''">
+          AND field_scope = #{fieldScope}
+        </if>
+        ORDER BY step_id ASC, field_scope ASC, field_path ASC
+    </select>
+
+    <select id="countByStableFieldKey" resultType="int">
+        SELECT COUNT(1)
+        FROM field_config
+        WHERE script_version_id = #{versionId}
+          AND stable_field_key = #{stableFieldKey}
+          AND deleted = 0
+        <if test="excludeId != null and excludeId != ''">
+          AND id != #{excludeId}
+        </if>
+    </select>
+
+    <update id="update" parameterType="com.apidemo.script.entity.FieldConfigEntity">
+        UPDATE field_config
+        SET step_id = #{stepId},
+            field_scope = #{fieldScope},
+            field_path = #{fieldPath},
+            field_key = #{fieldKey},
+            stable_field_key = #{stableFieldKey},
+            field_name = #{fieldName},
+            data_type = #{dataType},
+            required = #{required},
+            array_flag = #{arrayFlag},
+            sensitive = #{sensitive},
+            description = #{description},
+            updated_time = #{updatedTime},
+            updated_by = #{updatedBy}
+        WHERE id = #{id}
+          AND script_id = #{scriptId}
+          AND script_version_id = #{scriptVersionId}
+          AND deleted = 0
+    </update>
+
+    <update id="logicalDelete">
+        UPDATE field_config
+        SET deleted = 1,
+            updated_time = #{updatedTime},
+            updated_by = #{updatedBy}
+        WHERE id = #{id}
+          AND script_id = #{scriptId}
+          AND script_version_id = #{versionId}
+          AND deleted = 0
+    </update>
+</mapper>
