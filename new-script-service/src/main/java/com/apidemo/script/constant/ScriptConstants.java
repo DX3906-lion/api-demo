@@ -14,6 +14,9 @@ public final class ScriptConstants {
     /** HTTP step type used by imported API requests. */
     public static final String STEP_TYPE_HTTP = "HTTP";
 
+    /** HTTP protocol type used by API request configuration. */
+    public static final String PROTOCOL_HTTP = "HTTP";
+
     /** Default JSON object used when optional step config is absent. */
     public static final String EMPTY_JSON_OBJECT = "{}";
 
@@ -52,6 +55,45 @@ public final class ScriptConstants {
 
     /** Request body field scope. */
     public static final String FIELD_SCOPE_REQUEST_BODY = "REQUEST_BODY";
+
+    /** Request direction for payload content rows. */
+    public static final String PAYLOAD_DIRECTION_REQUEST = "REQUEST";
+
+    /** Response direction for payload content rows. */
+    public static final String PAYLOAD_DIRECTION_RESPONSE = "RESPONSE";
+
+    /** Body payload location. */
+    public static final String PAYLOAD_LOCATION_BODY = "BODY";
+
+    /** Header payload location. */
+    public static final String PAYLOAD_LOCATION_HEADER = "HEADER";
+
+    /** Query payload location. */
+    public static final String PAYLOAD_LOCATION_QUERY = "QUERY";
+
+    /** Cookie payload location. */
+    public static final String PAYLOAD_LOCATION_COOKIE = "COOKIE";
+
+    /** Form payload location. */
+    public static final String PAYLOAD_LOCATION_FORM = "FORM";
+
+    /** JSON content format. */
+    public static final String CONTENT_FORMAT_JSON = "JSON";
+
+    /** XML content format. */
+    public static final String CONTENT_FORMAT_XML = "XML";
+
+    /** Form content format. */
+    public static final String CONTENT_FORMAT_FORM = "FORM";
+
+    /** Key-value content format. */
+    public static final String CONTENT_FORMAT_KEY_VALUE = "KEY_VALUE";
+
+    /** Text content format. */
+    public static final String CONTENT_FORMAT_TEXT = "TEXT";
+
+    /** Follow redirect flag enabled. */
+    public static final String FOLLOW_REDIRECT_TRUE = "1";
 
     /** String field data type. */
     public static final String DATA_TYPE_STRING = "STRING";

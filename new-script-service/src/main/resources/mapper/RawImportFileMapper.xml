@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.apidemo.script.mapper.RawImportFileMapper">
+
+    <resultMap id="RawImportFileResultMap" type="com.apidemo.script.entity.RawImportFileEntity">
+        <id column="id" property="id"/>
+        <result column="import_type" property="importType"/>
+        <result column="original_file_name" property="originalFileName"/>
+        <result column="file_hash" property="fileHash"/>
+        <result column="file_size" property="fileSize"/>
+        <result column="charset" property="charset"/>
+        <result column="content" property="content"/>
+        <result column="status" property="status"/>
+        <result column="confirmed_script_id" property="confirmedScriptId"/>
+        <result column="confirmed_version_id" property="confirmedVersionId"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="updated_time" property="updatedTime"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="updated_by" property="updatedBy"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.apidemo.script.entity.RawImportFileEntity">
+        INSERT INTO raw_import_file (
+            id, import_type, original_file_name, file_hash, file_size, charset, content, status,
+            confirmed_script_id, confirmed_version_id,
+            created_time, updated_time, created_by, updated_by, deleted
+        )
+        VALUES (
+            #{id}, #{importType}, #{originalFileName}, #{fileHash}, #{fileSize}, #{charset}, #{content}, #{status},
+            #{confirmedScriptId}, #{confirmedVersionId},
+            #{createdTime}, #{updatedTime}, #{createdBy}, #{updatedBy}, #{deleted}
+        )
+    </insert>
+
+    <select id="selectById" resultMap="RawImportFileResultMap">
+        SELECT id, import_type, original_file_name, file_hash, file_size, charset, content, status,
+               confirmed_script_id, confirmed_version_id,
+               created_time, updated_time, created_by, updated_by, deleted
+        FROM raw_import_file
+        WHERE id = #{id}
+          AND deleted = 0
+    </select>
+
+    <update id="markConfirmed">
+        UPDATE raw_import_file
+        SET status = #{status},
+            confirmed_script_id = #{confirmedScriptId},
+            confirmed_version_id = #{confirmedVersionId},
+            updated_time = #{updatedTime},
+            updated_by = #{updatedBy}
+        WHERE id = #{id}
+          AND deleted = 0
+    </update>
+</mapper>

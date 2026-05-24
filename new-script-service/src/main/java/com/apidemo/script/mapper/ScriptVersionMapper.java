@@ -67,4 +67,20 @@ public interface ScriptVersionMapper {
                 @Param("publishedAt") LocalDateTime publishedAt,
                 @Param("updatedTime") LocalDateTime updatedTime,
                 @Param("updatedBy") String updatedBy);
+
+    /**
+     * Associates a raw import file with a script version.
+     *
+     * @param id version id
+     * @param scriptId owning script id
+     * @param rawImportFileId raw import file id
+     * @param updatedTime update time
+     * @param updatedBy updater id
+     * @return affected row count
+     */
+    int updateRawImportFileId(@Param("id") String id,
+                              @Param("scriptId") String scriptId,
+                              @Param("rawImportFileId") String rawImportFileId,
+                              @Param("updatedTime") LocalDateTime updatedTime,
+                              @Param("updatedBy") String updatedBy);
 }

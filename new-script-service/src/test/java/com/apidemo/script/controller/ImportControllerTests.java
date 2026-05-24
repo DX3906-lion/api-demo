@@ -34,6 +34,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "DELETE FROM script_field_default",
         "DELETE FROM field_config",
         "DELETE FROM step_definition",
+        "DELETE FROM import_log",
+        "DELETE FROM raw_import_file",
         "DELETE FROM script_version",
         "DELETE FROM script"
 }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
@@ -52,6 +54,8 @@ class ImportControllerTests {
                         .param("importType", "HAR"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.importFileId").isNotEmpty())
+                .andExpect(jsonPath("$.data.formalScriptDataCreated").value(false))
                 .andExpect(jsonPath("$.data.importType").value("HAR"))
                 .andExpect(jsonPath("$.data.steps[0].requestMethod").value("POST"));
     }
@@ -63,6 +67,8 @@ class ImportControllerTests {
                         .param("importType", "POSTMAN"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.importFileId").isNotEmpty())
+                .andExpect(jsonPath("$.data.formalScriptDataCreated").value(false))
                 .andExpect(jsonPath("$.data.importType").value("POSTMAN"))
                 .andExpect(jsonPath("$.data.steps[0].name").value("Login Request"));
     }
@@ -70,26 +76,35 @@ class ImportControllerTests {
     @Test
     void confirmImportShouldReturnSuccess() throws Exception {
         ScriptContext context = createScript("confirm import");
+        String importFileId = previewImportFile("sample.har", "HAR");
 
         mockMvc.perform(post("/api/scripts/{scriptId}/versions/{versionId}/imports/confirm", context.scriptId, context.versionId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(confirmRequest())))
+                        .content(objectMapper.writeValueAsString(confirmRequest(importFileId))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.importFileId").value(importFileId))
                 .andExpect(jsonPath("$.data.importedStepCount").value(1))
                 .andExpect(jsonPath("$.data.importedFieldCount").value(1))
                 .andExpect(jsonPath("$.data.importedDefaultCount").value(1));
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(
+                        "/api/imports/{importFileId}/logs", importFileId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data[0].rawImportFileId").value(importFileId));
     }
 
     @Test
     void confirmImportOnPublishedVersionShouldFail() throws Exception {
         ScriptContext context = createScript("published import");
+        String importFileId = previewImportFile("sample.har", "HAR");
         mockMvc.perform(post("/api/scripts/{scriptId}/versions/{versionId}/publish", context.scriptId, context.versionId))
                 .andExpect(status().isOk());
 
         mockMvc.perform(post("/api/scripts/{scriptId}/versions/{versionId}/imports/confirm", context.scriptId, context.versionId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(confirmRequest())))
+                        .content(objectMapper.writeValueAsString(confirmRequest(importFileId))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.code").value("409002"));
@@ -112,7 +127,7 @@ class ImportControllerTests {
         return request;
     }
 
-    private ImportConfirmRequest confirmRequest() {
+    private ImportConfirmRequest confirmRequest(String importFileId) {
         ImportConfirmFieldRequest field = new ImportConfirmFieldRequest();
         field.setFieldScope("REQUEST_BODY");
         field.setFieldPath("$.username");
@@ -132,9 +147,20 @@ class ImportControllerTests {
         step.setFields(Arrays.asList(field));
 
         ImportConfirmRequest request = new ImportConfirmRequest();
+        request.setImportFileId(importFileId);
         request.setImportType("HAR");
         request.setSteps(Arrays.asList(step));
         return request;
+    }
+
+    private String previewImportFile(String path, String importType) throws Exception {
+        MvcResult result = mockMvc.perform(multipart("/api/imports/preview")
+                        .file(file(path))
+                        .param("importType", importType))
+                .andExpect(status().isOk())
+                .andReturn();
+        JsonNode root = objectMapper.readTree(result.getResponse().getContentAsString());
+        return root.path("data").path("importFileId").asText();
     }
 
     private MockMultipartFile file(String path) throws IOException {

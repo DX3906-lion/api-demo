@@ -23,6 +23,9 @@ public class ScriptVersionEntity extends BaseEntity {
     /** Publish time, set when a DRAFT version is published. */
     private LocalDateTime publishedAt;
 
+    /** Raw import file id associated when this version is created or updated by import confirmation. */
+    private String rawImportFileId;
+
     public String getScriptId() {
         return scriptId;
     }
@@ -61,5 +64,13 @@ public class ScriptVersionEntity extends BaseEntity {
 
     public void setPublishedAt(LocalDateTime publishedAt) {
         this.publishedAt = publishedAt;
+    }
+
+    public String getRawImportFileId() {
+        return rawImportFileId;
+    }
+
+    public void setRawImportFileId(String rawImportFileId) {
+        this.rawImportFileId = rawImportFileId;
     }
 }

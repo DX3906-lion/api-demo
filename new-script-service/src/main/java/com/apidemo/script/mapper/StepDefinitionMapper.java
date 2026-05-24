@@ -33,6 +33,14 @@ public interface StepDefinitionMapper {
                                                     @Param("id") String id);
 
     /**
+     * Finds an active step by id.
+     *
+     * @param id step id
+     * @return step entity, or null when absent
+     */
+    StepDefinitionEntity selectById(@Param("id") String id);
+
+    /**
      * Lists active steps in a version ordered by sort number.
      *
      * @param scriptId owning script id
@@ -57,6 +65,24 @@ public interface StepDefinitionMapper {
      * @return affected row count
      */
     int update(StepDefinitionEntity step);
+
+    /**
+     * Updates the legacy request compatibility fields on a step.
+     *
+     * @param id step id
+     * @param requestMethod request method
+     * @param requestUrl request URL template
+     * @param requestConfig request config JSON
+     * @param updatedTime update time
+     * @param updatedBy updater id
+     * @return affected row count
+     */
+    int updateRequestCompatibility(@Param("id") String id,
+                                   @Param("requestMethod") String requestMethod,
+                                   @Param("requestUrl") String requestUrl,
+                                   @Param("requestConfig") String requestConfig,
+                                   @Param("updatedTime") LocalDateTime updatedTime,
+                                   @Param("updatedBy") String updatedBy);
 
     /**
      * Logically deletes an active step.

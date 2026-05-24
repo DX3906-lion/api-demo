@@ -7,6 +7,9 @@ import java.util.List;
  */
 public class ImportConfirmResponse {
 
+    /** Raw import file id associated with the confirmed script version. */
+    private String importFileId;
+
     /** Script id that received the imported configuration. */
     private String scriptId;
 
@@ -24,6 +27,14 @@ public class ImportConfirmResponse {
 
     /** Created step ids in request order. */
     private List<String> stepIds;
+
+    public String getImportFileId() {
+        return importFileId;
+    }
+
+    public void setImportFileId(String importFileId) {
+        this.importFileId = importFileId;
+    }
 
     public String getScriptId() {
         return scriptId;

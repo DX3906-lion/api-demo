@@ -49,6 +49,15 @@
           AND deleted = 0
     </select>
 
+    <select id="selectById" resultMap="StepDefinitionResultMap">
+        SELECT id, script_id, script_version_id, parent_step_id, step_type, name, sort_no,
+               request_method, request_url, request_config, assertion_config, extractor_config,
+               enabled, created_time, updated_time, created_by, updated_by, deleted
+        FROM step_definition
+        WHERE id = #{id}
+          AND deleted = 0
+    </select>
+
     <select id="listByVersion" resultMap="StepDefinitionResultMap">
         SELECT id, script_id, script_version_id, parent_step_id, step_type, name, sort_no,
                request_method, request_url, request_config, assertion_config, extractor_config,
@@ -85,6 +94,17 @@
         WHERE id = #{id}
           AND script_id = #{scriptId}
           AND script_version_id = #{scriptVersionId}
+          AND deleted = 0
+    </update>
+
+    <update id="updateRequestCompatibility">
+        UPDATE step_definition
+        SET request_method = #{requestMethod},
+            request_url = #{requestUrl},
+            request_config = #{requestConfig},
+            updated_time = #{updatedTime},
+            updated_by = #{updatedBy}
+        WHERE id = #{id}
           AND deleted = 0
     </update>
 
