@@ -122,6 +122,12 @@ PUT /api/fields/{fieldId}/remark
 
 T05 阶段仅实现字段配置、脚本字段默认值、用例数据集、用例字段覆盖值的最小维护能力，接口继续采用带 `scriptId` 与 `versionId` 的嵌套路由校验归属关系。
 
+说明：
+
+- `case_data_set` / `CaseDataSet` 是当前已实现接口的兼容口径。
+- 最新设计基线以 `test_case` / `TestCase` 为正式用例主模型。
+- 后续实现正式用例管理、执行计划、执行记录和 `${case.xxx}` 变量解析时，应迁移到 `caseId = test_case.id`，不再扩展 `case_data_set` 新业务能力。
+
 ```http
 GET    /api/scripts/{scriptId}/versions/{versionId}/fields
 POST   /api/scripts/{scriptId}/versions/{versionId}/fields
@@ -143,7 +149,7 @@ GET    /api/scripts/{scriptId}/versions/{versionId}/case-data-sets/{caseDataSetI
 
 - `field_config` 与 `script_field_default` 只允许在 `DRAFT` 版本下新增、修改、删除。
 - 删除 `field_config` 时同步逻辑删除对应 `script_field_default`，不删除 `case_field_value`。
-- `case_data_set` 与 `case_field_value` 可在 `DRAFT` 或 `PUBLISHED` 版本下维护。
+- 兼容期 `case_data_set` 与 `case_field_value` 可在 `DRAFT` 或 `PUBLISHED` 版本下维护。
 - 保存 `case_field_value` 时会校验 `field_config_id` 必须属于当前 `scriptId + versionId`。
 
 ### 2.7 响应样例

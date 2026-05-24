@@ -4,11 +4,17 @@ DROP TABLE IF EXISTS execution_task;
 DROP TABLE IF EXISTS execution_plan_instance;
 DROP TABLE IF EXISTS execution_plan_case;
 DROP TABLE IF EXISTS execution_plan;
+DROP TABLE IF EXISTS test_case;
 DROP TABLE IF EXISTS step_definition;
 DROP TABLE IF EXISTS case_field_value;
 DROP TABLE IF EXISTS case_data_set;
+DROP TABLE IF EXISTS tree_cache;
 DROP TABLE IF EXISTS script_field_default;
 DROP TABLE IF EXISTS field_config;
+DROP TABLE IF EXISTS step_payload_content;
+DROP TABLE IF EXISTS step_request_config;
+DROP TABLE IF EXISTS import_log;
+DROP TABLE IF EXISTS raw_import_file;
 DROP TABLE IF EXISTS script_version;
 DROP TABLE IF EXISTS script;
 
@@ -42,6 +48,42 @@ CREATE TABLE script_version (
   UNIQUE KEY uk_script_version_no (script_id, version_no)
 );
 
+CREATE TABLE raw_import_file (
+  id varchar(64) NOT NULL,
+  import_type varchar(32) NOT NULL,
+  original_file_name varchar(255) NOT NULL,
+  file_hash varchar(128) DEFAULT NULL,
+  file_size bigint DEFAULT NULL,
+  charset varchar(32) DEFAULT NULL,
+  content longtext NOT NULL,
+  status varchar(32) NOT NULL,
+  confirmed_script_id varchar(64) DEFAULT NULL,
+  confirmed_version_id varchar(64) DEFAULT NULL,
+  created_time datetime NOT NULL,
+  updated_time datetime NOT NULL,
+  created_by varchar(64) DEFAULT NULL,
+  updated_by varchar(64) DEFAULT NULL,
+  deleted tinyint NOT NULL DEFAULT 0,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE import_log (
+  id varchar(64) NOT NULL,
+  raw_import_file_id varchar(64) DEFAULT NULL,
+  script_id varchar(64) DEFAULT NULL,
+  script_version_id varchar(64) DEFAULT NULL,
+  import_type varchar(32) NOT NULL,
+  stage varchar(32) NOT NULL,
+  status varchar(32) NOT NULL,
+  message text,
+  detail_json longtext,
+  warning_json longtext,
+  created_time datetime NOT NULL,
+  created_by varchar(64) DEFAULT NULL,
+  deleted tinyint NOT NULL DEFAULT 0,
+  PRIMARY KEY (id)
+);
+
 CREATE TABLE step_definition (
   id varchar(64) NOT NULL,
   script_id varchar(64) NOT NULL,
@@ -62,6 +104,45 @@ CREATE TABLE step_definition (
   updated_by varchar(64) DEFAULT NULL,
   deleted tinyint NOT NULL DEFAULT 0,
   PRIMARY KEY (id)
+);
+
+CREATE TABLE step_request_config (
+  id varchar(64) NOT NULL,
+  step_id varchar(64) NOT NULL,
+  method varchar(16) DEFAULT NULL,
+  url_template longtext,
+  protocol_type varchar(32) DEFAULT NULL,
+  content_type varchar(255) DEFAULT NULL,
+  body_format varchar(32) DEFAULT NULL,
+  charset varchar(32) DEFAULT NULL,
+  timeout_ms int DEFAULT NULL,
+  follow_redirect char(1) NOT NULL DEFAULT '1',
+  config_json longtext,
+  created_time datetime NOT NULL,
+  updated_time datetime NOT NULL,
+  created_by varchar(64) DEFAULT NULL,
+  updated_by varchar(64) DEFAULT NULL,
+  deleted tinyint NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_step_request_config_step (step_id)
+);
+
+CREATE TABLE step_payload_content (
+  id varchar(64) NOT NULL,
+  step_id varchar(64) NOT NULL,
+  direction varchar(16) NOT NULL,
+  location varchar(32) NOT NULL,
+  content_format varchar(32) DEFAULT NULL,
+  raw_content longtext,
+  parsed_content_json longtext,
+  content_hash varchar(128) DEFAULT NULL,
+  created_time datetime NOT NULL,
+  updated_time datetime NOT NULL,
+  created_by varchar(64) DEFAULT NULL,
+  updated_by varchar(64) DEFAULT NULL,
+  deleted tinyint NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_step_payload_content (step_id, direction, location)
 );
 
 CREATE TABLE field_config (
@@ -103,6 +184,25 @@ CREATE TABLE script_field_default (
   UNIQUE KEY uk_script_field_default (script_version_id, field_config_id)
 );
 
+CREATE TABLE tree_cache (
+  id varchar(64) NOT NULL,
+  owner_type varchar(32) NOT NULL,
+  owner_id varchar(64) NOT NULL,
+  script_version_id varchar(64) NOT NULL,
+  step_id varchar(64) DEFAULT NULL,
+  direction varchar(16) DEFAULT NULL,
+  location varchar(32) DEFAULT NULL,
+  field_config_version int DEFAULT NULL,
+  tree_json longtext NOT NULL,
+  tree_hash varchar(128) DEFAULT NULL,
+  created_time datetime NOT NULL,
+  updated_time datetime NOT NULL,
+  created_by varchar(64) DEFAULT NULL,
+  updated_by varchar(64) DEFAULT NULL,
+  deleted tinyint NOT NULL DEFAULT 0,
+  PRIMARY KEY (id)
+);
+
 CREATE TABLE case_data_set (
   id varchar(64) NOT NULL,
   script_id varchar(64) NOT NULL,
@@ -118,19 +218,54 @@ CREATE TABLE case_data_set (
   PRIMARY KEY (id)
 );
 
-CREATE TABLE case_field_value (
+CREATE TABLE test_case (
   id varchar(64) NOT NULL,
-  case_data_set_id varchar(64) NOT NULL,
-  field_config_id varchar(64) NOT NULL,
-  value longtext,
-  value_source varchar(64) DEFAULT NULL,
+  system_id varchar(64) DEFAULT NULL,
+  script_id varchar(64) NOT NULL,
+  script_version_id varchar(64) NOT NULL,
+  case_code varchar(128) DEFAULT NULL,
+  case_name varchar(255) NOT NULL,
+  module_id varchar(64) DEFAULT NULL,
+  description text,
+  status varchar(32) NOT NULL,
+  tags longtext,
+  owner_id varchar(64) DEFAULT NULL,
   created_time datetime NOT NULL,
   updated_time datetime NOT NULL,
   created_by varchar(64) DEFAULT NULL,
   updated_by varchar(64) DEFAULT NULL,
   deleted tinyint NOT NULL DEFAULT 0,
   PRIMARY KEY (id),
-  UNIQUE KEY uk_case_field_value (case_data_set_id, field_config_id)
+  UNIQUE KEY uk_test_case_code (system_id, case_code)
+);
+
+CREATE TABLE case_field_value (
+  id varchar(64) NOT NULL,
+  case_data_set_id varchar(64) NOT NULL,
+  case_id varchar(64) DEFAULT NULL,
+  script_version_id varchar(64) DEFAULT NULL,
+  step_id varchar(64) DEFAULT NULL,
+  field_config_id varchar(64) NOT NULL,
+  field_id varchar(64) DEFAULT NULL,
+  field_code_snapshot varchar(255) DEFAULT NULL,
+  field_path_snapshot varchar(1000) DEFAULT NULL,
+  raw_input longtext,
+  value longtext,
+  original_value longtext,
+  value_mode varchar(32) DEFAULT NULL,
+  value_source varchar(64) DEFAULT NULL,
+  is_parameterization char(1) DEFAULT NULL,
+  variables_json longtext,
+  is_send char(1) DEFAULT NULL,
+  version int NOT NULL DEFAULT 0,
+  created_time datetime NOT NULL,
+  updated_time datetime NOT NULL,
+  created_by varchar(64) DEFAULT NULL,
+  updated_by varchar(64) DEFAULT NULL,
+  deleted tinyint NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_case_field_value (case_data_set_id, field_config_id),
+  UNIQUE KEY uk_case_field (case_id, step_id, field_id)
 );
 
 CREATE TABLE execution_plan (

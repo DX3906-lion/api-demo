@@ -67,7 +67,7 @@
 | `CaseDataSetEntity` | `new-script-service/src/main/java/com/apidemo/script/entity/CaseDataSetEntity.java` | `case_data_set` |
 | `CaseFieldValueEntity` | `new-script-service/src/main/java/com/apidemo/script/entity/CaseFieldValueEntity.java` | `case_field_value` |
 
-当前未发现以下设计基线实体的 Java Entity：`TreeCache`、`RawImportFile`、`StepRequestConfig`、`StepPayloadContent`、`StepResponseSample`、`ExtractorConfig`、`AssertionConfig`、`TestCase`、`ExecutionPlan`、`ExecutionPlanCase`、`ExecutionPlanInstance`、`ExecutionTask`、`FlowExecutionRecord`、`StepExecutionSnapshot`、`Environment`、`EnvironmentConfig`、`EnvironmentVariable`。
+当前未发现以下设计基线实体的 Java Entity：`TreeCache`、`RawImportFile`、`ImportLog`、`StepRequestConfig`、`StepPayloadContent`、`StepResponseSample`、`ExtractorConfig`、`AssertionConfig`、`TestCase`、`ExecutionPlan`、`ExecutionPlanCase`、`ExecutionPlanInstance`、`ExecutionTask`、`FlowExecutionRecord`、`StepExecutionSnapshot`、`Environment`、`EnvironmentConfig`、`EnvironmentVariable`。
 
 ## 4. 当前 Mapper
 
@@ -156,10 +156,16 @@
 
 - `script`
 - `script_version`
+- `raw_import_file`
+- `import_log`
 - `step_definition`
+- `step_request_config`
+- `step_payload_content`
 - `field_config`
 - `script_field_default`
+- `tree_cache`
 - `case_data_set`
+- `test_case`
 - `case_field_value`
 - `execution_plan`
 - `execution_plan_case`
@@ -180,7 +186,7 @@
 
 | 脚本 | 路径 | 当前内容 |
 |---|---|---|
-| `schema-h2.sql` | `new-script-service/src/test/resources/db/schema-h2.sql` | H2 测试建表脚本，覆盖 `script`、`script_version`、`step_definition`、`field_config`、`script_field_default`、`case_data_set`、`case_field_value`、`execution_plan`、`execution_plan_case`、`execution_plan_instance`、`execution_task`、`flow_execution_record`、`step_execution_snapshot` |
+| `schema-h2.sql` | `new-script-service/src/test/resources/db/schema-h2.sql` | H2 测试建表脚本，覆盖 `script`、`script_version`、`raw_import_file`、`import_log`、`step_definition`、`step_request_config`、`step_payload_content`、`field_config`、`script_field_default`、`tree_cache`、`case_data_set`、`test_case`、`case_field_value`、`execution_plan`、`execution_plan_case`、`execution_plan_instance`、`execution_task`、`flow_execution_record`、`step_execution_snapshot` |
 
 ## 9. 当前测试文件
 
@@ -209,9 +215,10 @@
 以下为盘点发现的实现现状差异，只记录，不在本轮修正：
 
 - 当前 `db/mysql/V1__init_schema.sql` 的部分字段名与 `docs/DATA_MODEL.md` 的最新设计字段不同，例如 `script.name` / `current_version_id`、`script_version.version_status` / `published_at`、`step_definition.name` / `sort_no` 等。
-- 当前代码使用 `CaseDataSet` / `case_data_set` 作为用例数据模型，最新设计基线中核心用例模型命名为 `TestCase` / `test_case`，并要求用例绑定 `scriptVersionId`。
+- 当前代码使用 `CaseDataSet` / `case_data_set` 作为 T05 兼容用例数据模型；SQL 和最新设计基线已补充正式 `TestCase` / `test_case`，后续正式用例管理、执行计划和变量解析应迁移到 `test_case`。
 - 当前 SQL 已存在 `execution_plan`、`execution_plan_case`、`execution_plan_instance`、`execution_task`、`flow_execution_record`、`step_execution_snapshot` 表，但未发现对应 Java Entity、Mapper、Service、Controller。
-- 当前导入确认会写入已有步骤、字段与默认值模型；未发现 `RawImportFile`、导入日志表或对应 Entity。
+- 当前 SQL 已存在 `raw_import_file`、`import_log`、`step_request_config`、`step_payload_content`、`tree_cache`、`test_case` 表，但未发现对应 Java Entity、Mapper、Service、Controller。
+- 当前导入确认会写入已有步骤、字段与默认值模型；未发现 `RawImportFile`、导入日志对应 Java 实现。
 - 当前 `message-codec`、`variable-engine`、`extractor-engine`、`assertion-engine` 仍为空模块骨架，未发现主源码实现。
 - 当前 `new-executor-service` 只有启动类与健康检查接口，未发现执行任务接收、变量解析、请求发送、响应解析、提取、断言等业务实现。
 
