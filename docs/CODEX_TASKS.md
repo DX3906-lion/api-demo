@@ -139,11 +139,15 @@
 
 - 目标：实现执行机从接收任务到生成标准执行结果的最小闭环。
 - 涉及模块：`new-executor-service`、`new-script-service`（结果接收展示最小接入）。
-- 允许修改范围：任务接收、上下文组装、最小执行结果输出。
+- 允许修改范围：任务接收、上下文组装、标准 `ExecutionResult` 输出、脚本服务结果接收与执行记录最小落库。
 - 禁止事项：
   - 不实现执行计划全能力。
+  - 执行机不得直接写入 `flow_execution_record`、`step_execution_snapshot` 或其他脚本服务业务表。
 - 验收标准：
   - 可完成最小调试执行闭环并返回标准结果。
+  - `executionId` 由脚本服务生成，执行机原样返回。
+  - 脚本服务可根据 `ExecutionResult` 落库 `FlowExecutionRecord` 与 `StepExecutionSnapshot`。
+  - 执行记录包含变量解析前快照、解析后快照、最终请求、响应和错误信息。
 - 测试命令：
   - `mvn clean test`
 

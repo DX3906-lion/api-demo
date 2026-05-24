@@ -69,7 +69,7 @@ common modules
 - 解析响应
 - 执行变量提取
 - 执行断言
-- 生成标准执行结果（含步骤快照数据）
+- 生成标准 `ExecutionResult`（含步骤级执行事实数据）
 - 返回执行结果摘要与明细
 - 上报执行任务状态
 
@@ -121,11 +121,11 @@ common modules
   ↓
 new-script-service 保存草稿
   ↓
-new-script-service 生成 DebugExecutionPackage
+new-script-service 生成 executionId 与 DebugExecutionPackage
   ↓
-new-executor-service 执行调试任务并返回标准执行结果
+new-executor-service 执行调试任务并返回标准 ExecutionResult
   ↓
-new-script-service 接收结果并落库 StepExecutionSnapshot
+new-script-service 接收结果并落库 FlowExecutionRecord / StepExecutionSnapshot
   ↓
 new-script-service 查询并展示调试结果
   ↓
@@ -141,9 +141,9 @@ new-script-service 生成 ExecutionPlanInstance
   ↓
 new-script-service 生成 ExecutionTask 并下发
   ↓
-new-executor-service 执行任务并返回标准执行结果
+new-executor-service 执行任务并返回标准 ExecutionResult
   ↓
-new-script-service 接收结果并落库执行明细
+new-script-service 接收结果并落库 FlowExecutionRecord / StepExecutionSnapshot
   ↓
 new-script-service 汇总计划结果
 ```
@@ -152,7 +152,8 @@ new-script-service 汇总计划结果
 
 - 脚本服务不直接执行真实请求。
 - 执行机服务不修改脚本版本、用例配置、字段定义。
-- 执行快照由脚本服务落库，执行机服务只返回标准执行结果。
+- `executionId` 由脚本服务生成并贯穿调试、手工用例执行和计划任务执行。
+- 执行快照由脚本服务落库，执行机服务只返回标准 `ExecutionResult`。
 - 执行机服务不直接依赖脚本服务业务表。
 - 执行后的最终值只进入执行快照。
 - `TreeCache` 只做页面缓存。

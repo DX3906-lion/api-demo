@@ -162,7 +162,10 @@
 - `case_data_set`
 - `case_field_value`
 - `execution_plan`
+- `execution_plan_case`
+- `execution_plan_instance`
 - `execution_task`
+- `flow_execution_record`
 - `step_execution_snapshot`
 
 `V2__seed_demo_data.sql` 当前写入演示数据：
@@ -177,7 +180,7 @@
 
 | 脚本 | 路径 | 当前内容 |
 |---|---|---|
-| `schema-h2.sql` | `new-script-service/src/test/resources/db/schema-h2.sql` | H2 测试建表脚本，覆盖 `script`、`script_version`、`step_definition`、`field_config`、`script_field_default`、`case_data_set`、`case_field_value` |
+| `schema-h2.sql` | `new-script-service/src/test/resources/db/schema-h2.sql` | H2 测试建表脚本，覆盖 `script`、`script_version`、`step_definition`、`field_config`、`script_field_default`、`case_data_set`、`case_field_value`、`execution_plan`、`execution_plan_case`、`execution_plan_instance`、`execution_task`、`flow_execution_record`、`step_execution_snapshot` |
 
 ## 9. 当前测试文件
 
@@ -207,7 +210,7 @@
 
 - 当前 `db/mysql/V1__init_schema.sql` 的部分字段名与 `docs/DATA_MODEL.md` 的最新设计字段不同，例如 `script.name` / `current_version_id`、`script_version.version_status` / `published_at`、`step_definition.name` / `sort_no` 等。
 - 当前代码使用 `CaseDataSet` / `case_data_set` 作为用例数据模型，最新设计基线中核心用例模型命名为 `TestCase` / `test_case`，并要求用例绑定 `scriptVersionId`。
-- 当前 SQL 已存在 `execution_plan`、`execution_task`、`step_execution_snapshot` 表，但未发现对应 Java Entity、Mapper、Service、Controller。
+- 当前 SQL 已存在 `execution_plan`、`execution_plan_case`、`execution_plan_instance`、`execution_task`、`flow_execution_record`、`step_execution_snapshot` 表，但未发现对应 Java Entity、Mapper、Service、Controller。
 - 当前导入确认会写入已有步骤、字段与默认值模型；未发现 `RawImportFile`、导入日志表或对应 Entity。
 - 当前 `message-codec`、`variable-engine`、`extractor-engine`、`assertion-engine` 仍为空模块骨架，未发现主源码实现。
 - 当前 `new-executor-service` 只有启动类与健康检查接口，未发现执行任务接收、变量解析、请求发送、响应解析、提取、断言等业务实现。
@@ -215,4 +218,3 @@
 ## 11. 工作区状态提示
 
 盘点开始时检测到仓库已有未提交和未跟踪文件，本轮仅新增本文件，不回退、不覆盖既有改动。
-

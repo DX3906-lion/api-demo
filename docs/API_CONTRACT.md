@@ -242,6 +242,7 @@ DELETE /api/execution-plans/{planId}/cases/{caseId}
 POST /api/execution-plans/{planId}/run
 GET  /api/execution-plans/{planId}/instances
 GET  /api/execution-plan-instances/{instanceId}
+GET  /api/execution-plan-instances/{instanceId}/tasks
 ```
 
 ### 2.13 调试
@@ -256,8 +257,24 @@ GET  /api/debug/executions/{executionId}
 
 - 脚本服务负责调试发起、执行结果展示与执行快照查询。
 - 脚本服务调用执行机服务并接收标准执行结果。
-- 执行机返回 `executionId` 与标准执行结果。
-- 脚本服务接收执行结果后落库 `StepExecutionSnapshot`，并根据 `executionId` 展示结果。
+- `executionId` 由脚本服务生成并写入执行包。
+- 执行机按输入的 `executionId` 返回标准 `ExecutionResult`。
+- 脚本服务接收 `ExecutionResult` 后落库 `FlowExecutionRecord` 与 `StepExecutionSnapshot`，并根据 `executionId` 展示结果。
+
+### 2.14 执行记录查询
+
+```http
+GET /api/executions/{executionId}
+GET /api/executions/{executionId}/steps
+GET /api/executions/{executionId}/steps/{stepSnapshotId}
+```
+
+说明：
+
+- 执行记录查询统一由脚本服务提供。
+- `GET /api/executions/{executionId}` 返回 `FlowExecutionRecord` 摘要。
+- `GET /api/executions/{executionId}/steps` 返回步骤快照列表。
+- `GET /api/executions/{executionId}/steps/{stepSnapshotId}` 返回单步执行事实详情。
 
 ## 3. 执行机服务接口
 
@@ -278,24 +295,114 @@ POST /executor/tasks/{taskId}/cancel
 
 ### 3.3 执行记录查询
 
-```http
-GET /executor/records/{executionId}
-GET /executor/records/{executionId}/steps
-GET /executor/records/{executionId}/steps/{stepSnapshotId}
-```
+执行机服务不提供业务执行记录查询接口。执行记录、步骤快照、执行详情均由 `new-script-service` 查询。
 
-## 4. 执行机任务请求核心字段
+## 4. 执行机任务请求与结果契约
+
+### 4.1 执行机任务请求核心字段
 
 ```json
 {
   "taskId": "task_001",
+  "executionId": "exec_001",
   "executionType": "PLAN",
   "caseId": "case_001",
   "scriptVersionId": "version_001",
   "envId": "sit",
-  "executionPackage": {}
+  "traceId": "trace_001",
+  "executionPackage": {
+    "scriptSnapshot": {},
+    "caseSnapshot": {},
+    "environmentSnapshot": {},
+    "runtimeVariables": {},
+    "steps": []
+  }
 }
 ```
+
+字段说明：
+
+- `taskId`：正式执行任务 ID；单步调试可为空。
+- `executionId`：脚本服务生成的执行记录 ID，执行机必须原样返回。
+- `executionType`：`DEBUG_STEP`、`DEBUG_FLOW`、`PLAN`、`MANUAL_CASE`。
+- `executionPackage`：脚本服务下发的不可变执行包快照，执行机不得回查脚本服务业务表。
+- `steps`：按执行顺序排列的步骤快照，包含请求配置、字段默认值、用例覆盖值、提取器和断言配置。
+
+### 4.2 ExecutionResult 核心字段
+
+```json
+{
+  "executionId": "exec_001",
+  "taskId": "task_001",
+  "executionType": "PLAN",
+  "status": "SUCCESS",
+  "startTime": "2026-05-24T10:00:00",
+  "endTime": "2026-05-24T10:00:01",
+  "durationMs": 1000,
+  "errorCode": null,
+  "errorMessage": null,
+  "envSnapshot": {},
+  "initialVariableSnapshot": {},
+  "finalVariableSnapshot": {},
+  "stepResults": []
+}
+```
+
+字段说明：
+
+- `status`：`RUNNING`、`SUCCESS`、`FAILED`、`PARTIAL_SUCCESS`。
+- `envSnapshot`：执行机实际使用的环境变量快照。
+- `initialVariableSnapshot`：执行开始前变量上下文快照。
+- `finalVariableSnapshot`：执行结束后的变量上下文快照，包含提取变量。
+- `stepResults`：步骤级执行结果数组，用于脚本服务落库 `StepExecutionSnapshot`。
+
+### 4.3 StepExecutionResult 核心字段
+
+```json
+{
+  "stepId": "step_001",
+  "stepOrderNo": 1,
+  "stepName": "login",
+  "stepType": "API_STEP",
+  "status": "SUCCESS",
+  "startTime": "2026-05-24T10:00:00",
+  "endTime": "2026-05-24T10:00:01",
+  "durationMs": 1000,
+  "rawInputSnapshot": {},
+  "resolvedFieldValues": {},
+  "resolvedRequest": {
+    "method": "POST",
+    "url": "https://example.com/login",
+    "query": {},
+    "headers": {},
+    "cookies": {},
+    "body": "{}"
+  },
+  "response": {
+    "statusCode": 200,
+    "headers": {},
+    "cookies": {},
+    "body": "{}",
+    "contentType": "application/json",
+    "responseTimeMs": 900
+  },
+  "extractedVariables": {},
+  "assertResults": [],
+  "executionLog": "",
+  "errorCode": null,
+  "errorMessage": null
+}
+```
+
+字段说明：
+
+- `rawInputSnapshot`：变量解析前字段表达式和值来源。
+- `resolvedFieldValues`：变量解析后的字段最终值。
+- `resolvedRequest`：最终真实请求快照。
+- `response`：真实响应快照；请求未发出时可为空。
+- `extractedVariables`：本步骤写入 `ExecutionContext.extract` 的变量。
+- `assertResults`：断言执行明细。
+- 敏感字段在接口返回和日志中必须脱敏；持久化是否加密按配置与数据安全规范执行。
 
 ## 5. Codex 接口实现约束
 

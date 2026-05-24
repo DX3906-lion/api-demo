@@ -359,7 +359,60 @@ UNIQUE KEY uk_case_field (case_id, step_id, field_id);
 | created_time | datetime | 创建时间 |
 | updated_time | datetime | 更新时间 |
 
-### 7.2 execution_task
+### 7.2 execution_plan_case
+
+执行计划与用例的绑定关系。一个计划可包含多个用例，并保存计划内顺序和用例级覆盖配置。
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| id | varchar(64) | 主键 |
+| plan_id | varchar(64) | 执行计划 ID |
+| case_id | varchar(64) | 用例 ID |
+| script_id | varchar(64) | 脚本 ID 快照 |
+| script_version_id | varchar(64) | 脚本版本 ID 快照 |
+| env_id | varchar(64) | 用例级环境覆盖，可为空 |
+| order_no | int | 计划内执行顺序 |
+| enabled | char(1) | 是否启用 |
+| config_json | text | 用例级执行配置扩展 |
+| created_by | varchar(64) | 创建人 |
+| updated_by | varchar(64) | 更新人 |
+| created_time | datetime | 创建时间 |
+| updated_time | datetime | 更新时间 |
+
+约束：
+
+```sql
+UNIQUE KEY uk_execution_plan_case (plan_id, case_id);
+```
+
+### 7.3 execution_plan_instance
+
+执行计划实例表示一次计划触发批次，用于汇总本次批次下所有 `ExecutionTask` 的状态和结果。
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| id | varchar(64) | 主键 |
+| plan_id | varchar(64) | 执行计划 ID |
+| trigger_type | varchar(32) | MANUAL / SCHEDULED |
+| trigger_time | datetime | 触发时间 |
+| triggered_by | varchar(64) | 触发人 |
+| env_id | varchar(64) | 本次执行环境 ID |
+| status | varchar(32) | WAITING / RUNNING / SUCCESS / FAILED / PARTIAL_SUCCESS / CANCELED |
+| total_count | int | 任务总数 |
+| success_count | int | 成功任务数 |
+| failed_count | int | 失败任务数 |
+| skipped_count | int | 跳过任务数 |
+| duration_ms | bigint | 批次总耗时 |
+| start_time | datetime | 开始时间 |
+| end_time | datetime | 结束时间 |
+| summary_json | text | 汇总结果扩展 |
+| error_message | text | 错误信息 |
+| created_by | varchar(64) | 创建人 |
+| updated_by | varchar(64) | 更新人 |
+| created_time | datetime | 创建时间 |
+| updated_time | datetime | 更新时间 |
+
+### 7.4 execution_task
 
 | 字段 | 类型 | 说明 |
 |---|---|---|
@@ -367,17 +420,23 @@ UNIQUE KEY uk_case_field (case_id, step_id, field_id);
 | plan_instance_id | varchar(64) | 计划实例 ID |
 | plan_id | varchar(64) | 计划 ID |
 | case_id | varchar(64) | 用例 ID |
+| script_id | varchar(64) | 脚本 ID |
 | script_version_id | varchar(64) | 脚本版本 ID |
 | env_id | varchar(64) | 环境 ID |
 | engine_version | varchar(16) | V1 / V2 |
-| status | varchar(32) | WAITING / DISPATCHED / RUNNING / SUCCESS / FAILED |
+| execution_id | varchar(64) | 执行记录 ID，关联 `flow_execution_record.id` |
+| status | varchar(32) | WAITING / DISPATCHED / RUNNING / SUCCESS / FAILED / CANCELED |
 | order_no | int | 顺序 |
 | retry_count | int | 当前重试次数 |
+| max_retry_count | int | 最大重试次数快照 |
 | executor_node_id | varchar(64) | 执行机节点 ID |
 | dispatch_time | datetime | 下发时间 |
 | start_time | datetime | 开始时间 |
 | end_time | datetime | 结束时间 |
+| duration_ms | bigint | 耗时 |
 | error_message | text | 错误信息 |
+| created_time | datetime | 创建时间 |
+| updated_time | datetime | 更新时间 |
 
 ## 8. 执行记录域
 
@@ -386,17 +445,23 @@ UNIQUE KEY uk_case_field (case_id, step_id, field_id);
 | 字段 | 类型 | 说明 |
 |---|---|---|
 | id | varchar(64) | 主键 executionId |
-| task_id | varchar(64) | 执行任务 ID |
-| plan_instance_id | varchar(64) | 计划实例 ID |
-| case_id | varchar(64) | 用例 ID |
+| task_id | varchar(64) | 执行任务 ID，调试执行可为空 |
+| plan_id | varchar(64) | 执行计划 ID，非计划执行可为空 |
+| plan_instance_id | varchar(64) | 计划实例 ID，非计划执行可为空 |
+| case_id | varchar(64) | 用例 ID，单步调试可为空 |
 | script_id | varchar(64) | 脚本 ID |
 | script_version_id | varchar(64) | 脚本版本 ID |
 | env_id | varchar(64) | 环境 ID |
 | execution_type | varchar(32) | DEBUG_STEP / DEBUG_FLOW / PLAN / MANUAL_CASE |
 | status | varchar(32) | RUNNING / SUCCESS / FAILED / PARTIAL_SUCCESS |
+| trace_id | varchar(128) | 链路追踪 ID |
 | duration_ms | bigint | 耗时 |
 | env_snapshot_json | text | 环境快照 |
 | variable_snapshot_json | text | 初始变量快照 |
+| final_variable_snapshot_json | text | 执行结束变量快照 |
+| result_summary_json | text | 执行结果摘要 |
+| error_code | varchar(64) | 错误码 |
+| error_message | text | 错误信息 |
 | triggered_by | varchar(64) | 触发人 |
 | start_time | datetime | 开始时间 |
 | end_time | datetime | 结束时间 |
@@ -429,9 +494,19 @@ UNIQUE KEY uk_case_field (case_id, step_id, field_id);
 | extracted_variables_json | text | 提取变量结果 |
 | assert_result_json | text | 断言结果 |
 | execution_log | longtext | 执行日志 |
+| error_code | varchar(64) | 错误码 |
 | error_message | text | 错误信息 |
 | start_time | datetime | 开始时间 |
 | end_time | datetime | 结束时间 |
+
+规则：
+
+- `FlowExecutionRecord.id` 即 `executionId`，由 `new-script-service` 生成。
+- `StepExecutionSnapshot.execution_id` 必须关联 `FlowExecutionRecord.id`，不得只关联 `ExecutionTask`。
+- `ExecutionTask.execution_id` 用于计划任务反查执行记录；调试执行可以没有 `ExecutionTask`。
+- `FlowExecutionRecord` 与 `StepExecutionSnapshot` 均由 `new-script-service` 根据执行机返回的标准 `ExecutionResult` 落库。
+- `new-executor-service` 不直接写入 `flow_execution_record`、`step_execution_snapshot` 或其他脚本服务业务表。
+- 执行记录必须保存变量解析前快照和解析后快照；接口返回和日志中的敏感值必须按脱敏规则处理。
 
 ## 9. 关键规则
 

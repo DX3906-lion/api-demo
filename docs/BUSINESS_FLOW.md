@@ -146,7 +146,7 @@ message-codec 做语法校验
   ↓
 new-script-service 保存当前草稿
   ↓
-new-script-service 生成 DebugExecutionPackage
+new-script-service 生成 executionId 与 DebugExecutionPackage
   ↓
 new-executor-service 接收调试任务
   ↓
@@ -160,9 +160,9 @@ new-executor-service 解析响应
   ↓
 new-executor-service 执行提取和断言
   ↓
-new-executor-service 返回标准执行结果
+new-executor-service 返回标准 ExecutionResult
   ↓
-new-script-service 接收结果并落库执行快照
+new-script-service 接收 ExecutionResult 并落库 FlowExecutionRecord / StepExecutionSnapshot
   ↓
 new-script-service 展示调试结果
 ```
@@ -170,6 +170,9 @@ new-script-service 展示调试结果
 规则：
 
 - 调试执行也由执行机服务执行。
+- `executionId` 由脚本服务生成并贯穿本次调试，执行机不得自行生成新的业务执行记录 ID。
+- 执行机只返回标准 `ExecutionResult`，不直接写入 `FlowExecutionRecord` 或 `StepExecutionSnapshot`。
+- 脚本服务负责执行记录查询、执行快照落库和调试结果展示。
 - 调试响应不会自动覆盖响应样例。
 - 用户点击“保存为响应样例”后，脚本服务才写入 `StepResponseSample`。
 
@@ -257,21 +260,31 @@ TestCase 绑定 scriptVersionId
   ↓
 生成 ExecutionTask
   ↓
+为每个 ExecutionTask 生成 executionId 与执行包
+  ↓
 下发 new-executor-service
   ↓
-执行机执行任务并返回标准执行结果
+执行机执行任务并返回标准 ExecutionResult
   ↓
-脚本服务接收结果并落库执行明细
+脚本服务接收 ExecutionResult 并落库 FlowExecutionRecord / StepExecutionSnapshot
   ↓
 脚本服务汇总计划结果
 ```
+
+规则：
+
+- `ExecutionPlanInstance` 表示一次计划触发批次。
+- `ExecutionTask` 表示计划批次中的单个用例执行任务。
+- `FlowExecutionRecord` 表示一次调试、手工用例或计划任务的执行记录，主键即 `executionId`。
+- `StepExecutionSnapshot` 只归属于 `FlowExecutionRecord`，保存步骤级执行事实。
+- 执行机不得直接依赖或写入脚本服务执行记录表。
 
 ## 11. 执行机执行流程
 
 ```text
 执行机接收任务
   ↓
-加载脚本版本、用例、环境、字段、变量、提取器、断言
+加载脚本服务下发的执行包快照
   ↓
 创建 ExecutionContext
   ↓
@@ -289,10 +302,17 @@ TestCase 绑定 scriptVersionId
   ↓
 执行断言
   ↓
-保存 StepExecutionSnapshot
+生成标准 ExecutionResult
   ↓
-更新 FlowExecutionRecord
+返回给 new-script-service
 ```
+
+规则：
+
+- 执行包必须包含脚本版本、用例覆盖值、环境变量、字段、提取器、断言等执行所需快照。
+- 执行机只负责执行期变量解析、请求组装、请求发送、响应解析、变量提取和断言执行。
+- 执行机返回的 `ExecutionResult` 必须包含步骤级解析前快照、解析后快照、最终请求、响应、提取结果、断言结果、耗时和错误信息。
+- 执行记录保存由 `new-script-service` 统一完成。
 
 ## 12. 用例升级脚本版本流程
 
