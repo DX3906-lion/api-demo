@@ -2,12 +2,40 @@
 
 本文件用于约束 Codex / AI 编码行为。所有实现必须遵守以下规则。
 
+## 0. 编码前阅读顺序
+
+1. `README.md`
+2. `AGENTS.md`
+3. `docs/ARCHITECTURE.md`
+4. `docs/DATA_MODEL.md`
+5. `docs/BUSINESS_FLOW.md`
+6. `docs/API_CONTRACT.md`
+7. `docs/IMPLEMENTATION_PLAN.md`
+8. `docs/DEV_SETUP.md`
+9. `docs/CONFIGURATION.md`
+10. `docs/CODEX_TASKS.md`
+11. `docs/ERROR_CODE.md`
+12. `docs/DATABASE_MIGRATION.md`
+13. `docs/DEPENDENCY_MATRIX.md`
+
+## 0.1 文档冲突优先级
+
+`AGENTS.md > DATA_MODEL.md > ARCHITECTURE.md > BUSINESS_FLOW.md > API_CONTRACT.md > IMPLEMENTATION_PLAN.md > CODEX_TASKS.md`
+
+## 0.2 任务执行约束
+
+- 每轮只完成 `CODEX_TASKS.md` 中一个任务。
+- 不得跨阶段提前实现。
+- 不得擅自修改服务职责边界。
+- 不得擅自引入未在 `DEPENDENCY_MATRIX.md` 中说明的依赖。
+- 如发现文档冲突，必须先说明冲突，不要直接猜测实现。
+
 ## 1. 技术栈规则
 
 - 使用 Spring Boot 2.7.18。
 - 使用 MySQL 8.0。
-- 默认使用 Maven 管理依赖。
-- Java 版本优先使用 Java 8 或 Java 11，具体以后端项目基线为准。
+- 使用单仓库 Maven 多模块工程。
+- Java 版本使用 Java 8（后续如升级需评审确认）。
 - 数据库脚本需兼容 MySQL 8.0。
 - 不引入未经确认的重量级框架。
 - 不在业务代码中硬编码环境地址、账号、密码、token、密钥。
@@ -24,9 +52,11 @@
 ## 3. 架构边界规则
 
 - `new-script-service` 负责脚本、版本、步骤、字段、变量、提取器、断言、用例、执行计划等配置管理。
-- `new-executor-service` 负责执行、变量解析、最终报文组装、请求发送、响应解析、变量提取、断言执行和执行快照。
+- `new-script-service` 负责编排期调试发起、执行结果展示、执行快照查询与落库。
+- `new-executor-service` 负责接收执行任务、变量解析、最终报文组装、请求发送、响应解析、变量提取、断言执行，并返回标准执行结果。
 - 执行期逻辑不得写入脚本服务。
 - 脚本服务不得直接执行真实 API / SQL 请求，调试也必须通过执行机服务。
+- 执行机服务不得直接依赖脚本服务业务表。
 - 公共解析能力放入 `message-codec`。
 - 变量解析能力放入 `variable-engine`。
 - 提取能力放入 `extractor-engine`。
@@ -88,3 +118,18 @@
 - 不实现 8583 bitmap / BCD / MAC 字节级原文编辑。
 - 不实现 multipart/form-data 完整 boundary 原文编辑。
 - 不把执行后的最终值写回用例。
+
+
+## 9. 测试与任务推进规则
+
+- 测试失败时必须明确归类：
+  - 代码失败（编译/测试断言失败）；
+  - 依赖下载失败（仓库解析/依赖不可达）；
+  - 环境网络失败（外网访问受限、DNS/代理问题）。
+- 不得因为当前任务完成而自动跳到后续业务任务。
+- 下一任务编号与范围必须以 `docs/CODEX_TASKS.md` 为准。
+- 数据库字段统一使用下划线命名（如 `created_time`、`updated_time`、`created_by`、`updated_by`）；Java 字段统一使用驼峰命名（如 `createdTime`、`updatedTime`、`createdBy`、`updatedBy`）；不得混用 `created_at/updated_at` 或 `createdAt/updatedAt`。
+- 统一成功响应 code 必须使用 `"000000"`（message 使用 `"success"`）。
+- 导入能力必须在数据库模型和基础 CRUD 之后实现。
+- 执行机真实 HTTP 调用必须在脚本配置、字段配置、变量/提取/断言基础能力之后实现。
+

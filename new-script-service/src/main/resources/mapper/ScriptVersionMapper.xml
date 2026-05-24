@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.apidemo.script.mapper.ScriptVersionMapper">
+
+    <resultMap id="ScriptVersionResultMap" type="com.apidemo.script.entity.ScriptVersionEntity">
+        <id column="id" property="id"/>
+        <result column="script_id" property="scriptId"/>
+        <result column="version_no" property="versionNo"/>
+        <result column="version_status" property="versionStatus"/>
+        <result column="description" property="description"/>
+        <result column="published_at" property="publishedAt"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="updated_time" property="updatedTime"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="updated_by" property="updatedBy"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.apidemo.script.entity.ScriptVersionEntity">
+        INSERT INTO script_version (
+            id, script_id, version_no, version_status, description, published_at,
+            created_time, updated_time, created_by, updated_by, deleted
+        )
+        VALUES (
+            #{id}, #{scriptId}, #{versionNo}, #{versionStatus}, #{description}, #{publishedAt},
+            #{createdTime}, #{updatedTime}, #{createdBy}, #{updatedBy}, #{deleted}
+        )
+    </insert>
+
+    <select id="selectByScriptIdAndId" resultMap="ScriptVersionResultMap">
+        SELECT id, script_id, version_no, version_status, description, published_at,
+               created_time, updated_time, created_by, updated_by, deleted
+        FROM script_version
+        WHERE script_id = #{scriptId}
+          AND id = #{id}
+          AND deleted = 0
+    </select>
+
+    <select id="selectById" resultMap="ScriptVersionResultMap">
+        SELECT id, script_id, version_no, version_status, description, published_at,
+               created_time, updated_time, created_by, updated_by, deleted
+        FROM script_version
+        WHERE id = #{id}
+          AND deleted = 0
+    </select>
+
+    <select id="countDraftByScriptId" resultType="int">
+        SELECT COUNT(1)
+        FROM script_version
+        WHERE script_id = #{scriptId}
+          AND version_status = 'DRAFT'
+          AND deleted = 0
+    </select>
+
+    <select id="selectMaxVersionNo" resultType="int">
+        SELECT MAX(version_no)
+        FROM script_version
+        WHERE script_id = #{scriptId}
+          AND deleted = 0
+    </select>
+
+    <update id="publish">
+        UPDATE script_version
+        SET version_status = 'PUBLISHED',
+            published_at = #{publishedAt},
+            updated_time = #{updatedTime},
+            updated_by = #{updatedBy}
+        WHERE id = #{id}
+          AND script_id = #{scriptId}
+          AND deleted = 0
+    </update>
+</mapper>

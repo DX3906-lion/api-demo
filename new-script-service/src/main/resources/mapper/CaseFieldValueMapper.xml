@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.apidemo.script.mapper.CaseFieldValueMapper">
+
+    <resultMap id="CaseFieldValueResultMap" type="com.apidemo.script.entity.CaseFieldValueEntity">
+        <id column="id" property="id"/>
+        <result column="case_data_set_id" property="caseDataSetId"/>
+        <result column="field_config_id" property="fieldConfigId"/>
+        <result column="value" property="value"/>
+        <result column="value_source" property="valueSource"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="updated_time" property="updatedTime"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="updated_by" property="updatedBy"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+    <resultMap id="CaseFieldValueResponseMap" type="com.apidemo.script.dto.CaseFieldValueResponse">
+        <id column="value_id" property="id"/>
+        <result column="case_data_set_id" property="caseDataSetId"/>
+        <result column="field_config_id" property="fieldConfigId"/>
+        <result column="step_id" property="stepId"/>
+        <result column="field_scope" property="fieldScope"/>
+        <result column="field_path" property="fieldPath"/>
+        <result column="field_name" property="fieldName"/>
+        <result column="data_type" property="dataType"/>
+        <result column="value" property="value"/>
+        <result column="value_source" property="valueSource"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="updated_time" property="updatedTime"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.apidemo.script.entity.CaseFieldValueEntity">
+        INSERT INTO case_field_value (
+            id, case_data_set_id, field_config_id, value, value_source,
+            created_time, updated_time, created_by, updated_by, deleted
+        )
+        VALUES (
+            #{id}, #{caseDataSetId}, #{fieldConfigId}, #{value}, #{valueSource},
+            #{createdTime}, #{updatedTime}, #{createdBy}, #{updatedBy}, #{deleted}
+        )
+    </insert>
+
+    <select id="selectByCaseAndFieldConfigId" resultMap="CaseFieldValueResultMap">
+        SELECT id, case_data_set_id, field_config_id, value, value_source,
+               created_time, updated_time, created_by, updated_by, deleted
+        FROM case_field_value
+        WHERE case_data_set_id = #{caseDataSetId}
+          AND field_config_id = #{fieldConfigId}
+    </select>
+
+    <update id="update" parameterType="com.apidemo.script.entity.CaseFieldValueEntity">
+        UPDATE case_field_value
+        SET value = #{value},
+            value_source = #{valueSource},
+            updated_time = #{updatedTime},
+            updated_by = #{updatedBy},
+            deleted = #{deleted}
+        WHERE id = #{id}
+          AND case_data_set_id = #{caseDataSetId}
+          AND field_config_id = #{fieldConfigId}
+    </update>
+
+    <select id="listByCaseDataSetId" resultMap="CaseFieldValueResponseMap">
+        SELECT v.id AS value_id,
+               v.case_data_set_id,
+               v.field_config_id,
+               f.step_id,
+               f.field_scope,
+               f.field_path,
+               f.field_name,
+               f.data_type,
+               v.value,
+               v.value_source,
+               v.created_time,
+               v.updated_time
+        FROM case_field_value v
+        INNER JOIN field_config f
+          ON f.id = v.field_config_id
+         AND f.deleted = 0
+        WHERE v.case_data_set_id = #{caseDataSetId}
+          AND v.deleted = 0
+        ORDER BY f.step_id ASC, f.field_scope ASC, f.field_path ASC
+    </select>
+
+    <update id="logicalDeleteByCaseDataSetId">
+        UPDATE case_field_value
+        SET deleted = 1,
+            updated_time = #{updatedTime},
+            updated_by = #{updatedBy}
+        WHERE case_data_set_id = #{caseDataSetId}
+          AND deleted = 0
+    </update>
+</mapper>

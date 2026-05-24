@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.apidemo.script.mapper.StepPayloadContentMapper">
+
+    <resultMap id="StepPayloadContentResultMap" type="com.apidemo.script.entity.StepPayloadContentEntity">
+        <id column="id" property="id"/>
+        <result column="step_id" property="stepId"/>
+        <result column="direction" property="direction"/>
+        <result column="location" property="location"/>
+        <result column="content_format" property="contentFormat"/>
+        <result column="raw_content" property="rawContent"/>
+        <result column="parsed_content_json" property="parsedContentJson"/>
+        <result column="content_hash" property="contentHash"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="updated_time" property="updatedTime"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="updated_by" property="updatedBy"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.apidemo.script.entity.StepPayloadContentEntity">
+        INSERT INTO step_payload_content (
+            id, step_id, direction, location, content_format, raw_content, parsed_content_json,
+            content_hash, created_time, updated_time, created_by, updated_by, deleted
+        )
+        VALUES (
+            #{id}, #{stepId}, #{direction}, #{location}, #{contentFormat}, #{rawContent}, #{parsedContentJson},
+            #{contentHash}, #{createdTime}, #{updatedTime}, #{createdBy}, #{updatedBy}, #{deleted}
+        )
+    </insert>
+
+    <select id="selectByStepDirectionLocation" resultMap="StepPayloadContentResultMap">
+        SELECT id, step_id, direction, location, content_format, raw_content, parsed_content_json,
+               content_hash, created_time, updated_time, created_by, updated_by, deleted
+        FROM step_payload_content
+        WHERE step_id = #{stepId}
+          AND direction = #{direction}
+          AND location = #{location}
+          AND deleted = 0
+    </select>
+
+    <select id="listByStepId" resultMap="StepPayloadContentResultMap">
+        SELECT id, step_id, direction, location, content_format, raw_content, parsed_content_json,
+               content_hash, created_time, updated_time, created_by, updated_by, deleted
+        FROM step_payload_content
+        WHERE step_id = #{stepId}
+          AND deleted = 0
+        ORDER BY direction ASC, location ASC, created_time ASC
+    </select>
+
+    <update id="update" parameterType="com.apidemo.script.entity.StepPayloadContentEntity">
+        UPDATE step_payload_content
+        SET content_format = #{contentFormat},
+            raw_content = #{rawContent},
+            parsed_content_json = #{parsedContentJson},
+            content_hash = #{contentHash},
+            updated_time = #{updatedTime},
+            updated_by = #{updatedBy}
+        WHERE id = #{id}
+          AND deleted = 0
+    </update>
+</mapper>

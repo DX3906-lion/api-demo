@@ -2,7 +2,7 @@
 
 ## 1. 开发目标
 
-基于 Spring Boot 2.7.18 + MySQL 8.0，实现新脚本服务与新执行机服务的第一阶段主链路：
+基于 Spring Boot 2.7.18 + MySQL 8.0 + Java 8，在单仓库 Maven 多模块工程下实现新脚本服务与新执行机服务的第一阶段主链路：
 
 ```text
 导入 / 新建脚本
@@ -40,7 +40,7 @@ DRAFT 脚本版本
 
 ### 目标
 
-搭建基础工程结构。
+搭建单仓库 Maven 多模块基础工程结构。
 
 ### 任务
 
@@ -197,14 +197,15 @@ DRAFT 脚本版本
 - 实现请求组装。
 - 实现 HTTP 请求执行。
 - 实现响应解析。
-- 实现 `StepExecutionSnapshot`。
-- 实现调试结果返回。
+- 实现标准 `ExecutionResult` / `StepExecutionResult` 返回。
+- 实现脚本服务接收执行结果并落库 `FlowExecutionRecord` / `StepExecutionSnapshot` 的最小闭环。
 
 ### 验收
 
 - 单步调试可执行。
 - 最终请求和响应可查看。
 - 调试记录可查询。
+- 执行机不直接写入脚本服务执行记录表。
 
 ## 11. 阶段 9：全流程执行、提取和断言
 
@@ -214,7 +215,7 @@ DRAFT 脚本版本
 - 实现变量提取。
 - 实现后续步骤引用提取变量。
 - 实现断言执行。
-- 实现 `FlowExecutionRecord`。
+- 完善 `FlowExecutionRecord` 变量快照、最终变量快照和结果摘要。
 - 实现执行失败策略。
 
 ### 验收

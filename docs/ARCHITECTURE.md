@@ -2,14 +2,16 @@
 
 ## 1. 总体架构
 
-系统拆分为两个主要服务和若干公共模块：
+系统采用单仓库 Maven 多模块工程，拆分为两个主要服务和若干公共模块：
 
 ```text
 new-script-service
   负责脚本、版本、字段、变量、用例、执行计划等配置管理
+  负责调试发起、执行结果展示、执行快照查询与落库
 
 new-executor-service
-  负责执行期变量解析、最终报文组装、请求执行、响应解析、提取、断言和快照
+  负责接收执行任务、组装真实请求、执行 HTTP 请求、解析响应
+  负责变量提取、断言执行并返回标准执行结果
 
 common modules
   message-codec
@@ -22,8 +24,8 @@ common modules
 
 - Spring Boot 2.7.18
 - MySQL 8.0
-- Maven
-- Java 8+ 或 Java 11
+- Maven（单仓库多模块）
+- Java 8
 - REST API 通信
 - 后续可引入消息队列支持执行任务异步调度
 
@@ -47,17 +49,17 @@ common modules
 - 用例管理
 - `CaseFieldValue` 管理
 - 执行计划管理
-- 执行任务生成
+- 执行任务生成与下发
 - 执行结果汇总展示
 - 编排期调试任务发起
-- 调试结果展示
+- 执行快照查询与落库
 
 ## 4. new-executor-service 职责
 
 - 接收单步调试任务
 - 接收全流程调试任务
 - 接收执行计划任务
-- 加载执行快照或执行包
+- 加载执行任务输入包（执行机本地模型）
 - 创建 `ExecutionContext`
 - 解析变量
 - 组装最终请求
@@ -67,9 +69,8 @@ common modules
 - 解析响应
 - 执行变量提取
 - 执行断言
-- 保存 `FlowExecutionRecord`
-- 保存 `StepExecutionSnapshot`
-- 返回执行结果摘要
+- 生成标准 `ExecutionResult`（含步骤级执行事实数据）
+- 返回执行结果摘要与明细
 - 上报执行任务状态
 
 ## 5. 公共模块职责
@@ -120,11 +121,11 @@ common modules
   ↓
 new-script-service 保存草稿
   ↓
-new-script-service 生成 DebugExecutionPackage
+new-script-service 生成 executionId 与 DebugExecutionPackage
   ↓
-new-executor-service 执行调试任务
+new-executor-service 执行调试任务并返回标准 ExecutionResult
   ↓
-new-executor-service 保存执行快照
+new-script-service 接收结果并落库 FlowExecutionRecord / StepExecutionSnapshot
   ↓
 new-script-service 查询并展示调试结果
   ↓
@@ -138,11 +139,11 @@ new-script-service 查询并展示调试结果
   ↓
 new-script-service 生成 ExecutionPlanInstance
   ↓
-new-script-service 生成 ExecutionTask
+new-script-service 生成 ExecutionTask 并下发
   ↓
-new-executor-service 执行任务
+new-executor-service 执行任务并返回标准 ExecutionResult
   ↓
-new-executor-service 保存执行明细
+new-script-service 接收结果并落库 FlowExecutionRecord / StepExecutionSnapshot
   ↓
 new-script-service 汇总计划结果
 ```
@@ -151,6 +152,9 @@ new-script-service 汇总计划结果
 
 - 脚本服务不直接执行真实请求。
 - 执行机服务不修改脚本版本、用例配置、字段定义。
+- `executionId` 由脚本服务生成并贯穿调试、手工用例执行和计划任务执行。
+- 执行快照由脚本服务落库，执行机服务只返回标准 `ExecutionResult`。
+- 执行机服务不直接依赖脚本服务业务表。
 - 执行后的最终值只进入执行快照。
 - `TreeCache` 只做页面缓存。
 - 响应样例必须由用户确认后保存，不自动覆盖。

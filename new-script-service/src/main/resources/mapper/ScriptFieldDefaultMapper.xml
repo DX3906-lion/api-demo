@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.apidemo.script.mapper.ScriptFieldDefaultMapper">
+
+    <resultMap id="ScriptFieldDefaultResultMap" type="com.apidemo.script.entity.ScriptFieldDefaultEntity">
+        <id column="id" property="id"/>
+        <result column="script_id" property="scriptId"/>
+        <result column="script_version_id" property="scriptVersionId"/>
+        <result column="field_config_id" property="fieldConfigId"/>
+        <result column="default_value" property="defaultValue"/>
+        <result column="value_source" property="valueSource"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="updated_time" property="updatedTime"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="updated_by" property="updatedBy"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+    <resultMap id="ScriptFieldDefaultResponseMap" type="com.apidemo.script.dto.ScriptFieldDefaultResponse">
+        <id column="default_id" property="id"/>
+        <result column="script_id" property="scriptId"/>
+        <result column="script_version_id" property="scriptVersionId"/>
+        <result column="field_config_id" property="fieldConfigId"/>
+        <result column="step_id" property="stepId"/>
+        <result column="field_scope" property="fieldScope"/>
+        <result column="field_path" property="fieldPath"/>
+        <result column="field_name" property="fieldName"/>
+        <result column="data_type" property="dataType"/>
+        <result column="default_value" property="defaultValue"/>
+        <result column="value_source" property="valueSource"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="updated_time" property="updatedTime"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.apidemo.script.entity.ScriptFieldDefaultEntity">
+        INSERT INTO script_field_default (
+            id, script_id, script_version_id, field_config_id, default_value, value_source,
+            created_time, updated_time, created_by, updated_by, deleted
+        )
+        VALUES (
+            #{id}, #{scriptId}, #{scriptVersionId}, #{fieldConfigId}, #{defaultValue}, #{valueSource},
+            #{createdTime}, #{updatedTime}, #{createdBy}, #{updatedBy}, #{deleted}
+        )
+    </insert>
+
+    <select id="selectByVersionAndFieldConfigId" resultMap="ScriptFieldDefaultResultMap">
+        SELECT id, script_id, script_version_id, field_config_id, default_value, value_source,
+               created_time, updated_time, created_by, updated_by, deleted
+        FROM script_field_default
+        WHERE script_version_id = #{versionId}
+          AND field_config_id = #{fieldConfigId}
+    </select>
+
+    <update id="update" parameterType="com.apidemo.script.entity.ScriptFieldDefaultEntity">
+        UPDATE script_field_default
+        SET default_value = #{defaultValue},
+            value_source = #{valueSource},
+            updated_time = #{updatedTime},
+            updated_by = #{updatedBy},
+            deleted = #{deleted}
+        WHERE id = #{id}
+          AND script_id = #{scriptId}
+          AND script_version_id = #{scriptVersionId}
+          AND field_config_id = #{fieldConfigId}
+    </update>
+
+    <select id="listDefaults" resultMap="ScriptFieldDefaultResponseMap">
+        SELECT d.id AS default_id,
+               f.script_id,
+               f.script_version_id,
+               f.id AS field_config_id,
+               f.step_id,
+               f.field_scope,
+               f.field_path,
+               f.field_name,
+               f.data_type,
+               d.default_value,
+               d.value_source,
+               d.created_time,
+               d.updated_time
+        FROM field_config f
+        LEFT JOIN script_field_default d
+          ON d.field_config_id = f.id
+         AND d.script_version_id = f.script_version_id
+         AND d.deleted = 0
+        WHERE f.script_id = #{scriptId}
+          AND f.script_version_id = #{versionId}
+          AND f.deleted = 0
+        <if test="stepId != null and stepId != ''">
+          AND f.step_id = #{stepId}
+        </if>
+        <if test="fieldScope != null and fieldScope != ''">
+          AND f.field_scope = #{fieldScope}
+        </if>
+        ORDER BY f.step_id ASC, f.field_scope ASC, f.field_path ASC
+    </select>
+
+    <update id="logicalDeleteByFieldConfigId">
+        UPDATE script_field_default
+        SET deleted = 1,
+            updated_time = #{updatedTime},
+            updated_by = #{updatedBy}
+        WHERE field_config_id = #{fieldConfigId}
+          AND deleted = 0
+    </update>
+</mapper>
