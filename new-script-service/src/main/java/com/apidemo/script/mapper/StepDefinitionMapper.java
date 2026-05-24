@@ -42,6 +42,15 @@ public interface StepDefinitionMapper {
     List<StepDefinitionEntity> listByVersion(@Param("scriptId") String scriptId, @Param("versionId") String versionId);
 
     /**
+     * Finds the current maximum sort number in a script version.
+     *
+     * @param scriptId owning script id
+     * @param versionId owning version id
+     * @return maximum sort number, or null when the version has no steps
+     */
+    Integer selectMaxSortNo(@Param("scriptId") String scriptId, @Param("versionId") String versionId);
+
+    /**
      * Updates editable fields on an active step.
      *
      * @param step step definition entity carrying updated values

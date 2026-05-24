@@ -154,6 +154,21 @@ POST /api/steps/{stepId}/response-samples
 POST /api/executions/{executionId}/steps/{stepId}/save-response-sample
 ```
 
+### 2.7.1 T06 已实现接口子集
+
+T06 阶段仅实现 HAR / Postman JSON 文件的导入预览与导入确认。预览不落库，确认导入到指定 `scriptId + versionId` 的 `DRAFT` 版本，并写入 `step_definition`、`field_config`、`script_field_default`。
+
+```http
+POST /api/imports/preview
+POST /api/scripts/{scriptId}/versions/{versionId}/imports/confirm
+```
+
+实现说明：
+- `POST /api/imports/preview` 使用 `multipart/form-data` 上传文件，`importType` 可选，支持 `HAR` / `POSTMAN` 自动识别。
+- 预览返回标准化后的 steps、fields 与 warnings，不创建脚本、版本、步骤或字段。
+- `POST /api/scripts/{scriptId}/versions/{versionId}/imports/confirm` 只允许写入 `DRAFT` 版本，`PUBLISHED` 版本返回 `VERSION_STATUS_INVALID`。
+- 确认导入按请求 steps 顺序创建步骤，`sort_no` 从当前最大值后递增；有 `defaultValue` 的字段同步创建 `script_field_default`。
+
 ### 2.8 变量、提取器、断言
 
 ```http

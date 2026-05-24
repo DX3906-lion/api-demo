@@ -88,3 +88,9 @@
 - T05 沿用 T04 已落地的 MyBatis + Mapper XML、MySQL 驱动、Validation 与 H2 测试依赖。
 - 本轮没有新增 Maven 依赖。
 - 本轮未引入 MyBatis-Plus、JPA/Hibernate、Flyway、Liquibase、Lombok、Guava、Apache Commons、MapStruct。
+
+## 12. T06 依赖变更说明
+
+- T06 使用 Spring Boot 已有 Jackson `ObjectMapper` 解析 HAR / Postman JSON 文件。
+- 本轮没有新增 Maven 依赖。
+- 本轮未引入复杂 HAR/Postman 第三方解析库，未引入 MyBatis-Plus、JPA/Hibernate、Flyway、Liquibase、Lombok、Guava、Apache Commons、MapStruct。

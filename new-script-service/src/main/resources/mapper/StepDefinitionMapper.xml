@@ -60,6 +60,14 @@
         ORDER BY sort_no ASC, created_time ASC
     </select>
 
+    <select id="selectMaxSortNo" resultType="java.lang.Integer">
+        SELECT MAX(sort_no)
+        FROM step_definition
+        WHERE script_id = #{scriptId}
+          AND script_version_id = #{versionId}
+          AND deleted = 0
+    </select>
+
     <update id="update" parameterType="com.apidemo.script.entity.StepDefinitionEntity">
         UPDATE step_definition
         SET parent_step_id = #{parentStepId},

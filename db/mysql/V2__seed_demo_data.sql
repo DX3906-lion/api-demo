@@ -33,7 +33,7 @@ INSERT INTO step_definition (
 
 INSERT INTO field_config (
   id, script_id, script_version_id, step_id, field_scope, field_path, field_key, stable_field_key,
-  field_name, data_type, required, array_flag, sensitive, description,
+  field_name, data_type, required, array_flag, `sensitive`, description,
   created_time, updated_time, created_by, updated_by, deleted
 ) VALUES
 (

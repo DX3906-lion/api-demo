@@ -1,0 +1,45 @@
+{
+  "info": {
+    "name": "Sample Collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Login Request",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Trace-Id",
+            "value": "trace-001"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/login?tenant=demo",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "login"
+          ],
+          "query": [
+            {
+              "key": "tenant",
+              "value": "demo"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\":\"demo-user\",\"password\":\"123456\",\"age\":18}"
+        }
+      }
+    }
+  ]
+}

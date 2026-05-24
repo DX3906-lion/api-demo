@@ -105,6 +105,11 @@
   - 确认后生成 Script + DRAFT ScriptVersion + StepDefinition + StepRequestConfig。
 - 测试命令：
   - `mvn -pl new-script-service test`
+- T06 验收说明：
+  - 已实现 HAR / Postman JSON 文件导入预览，预览仅解析并返回 steps、fields、warnings，不落库。
+  - 已实现导入确认到指定 `scriptId + versionId` 的 `DRAFT` 版本。
+  - 确认导入后创建 `step_definition`、`field_config`、`script_field_default`，不创建用例数据和导入任务表。
+  - 已覆盖 HAR/Postman 解析、DRAFT 导入确认、PUBLISHED 导入拒绝与 Controller 上传/确认主流程测试。
 
 ## T07 - 变量引擎基础能力
 
